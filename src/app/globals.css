@@ -1,0 +1,176 @@
+@import "tailwindcss";
+
+/* ══════════════════════════════════════════════════════════════════
+   root · sistema de diseño (estructura B: lista y timeline)
+   Los colores son tokens por paleta y modo, en <html data-palette data-mode>.
+   ══════════════════════════════════════════════════════════════════ */
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface2);
+  --color-line: var(--line);
+  --color-fg: var(--text);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-ink: var(--ink);
+  --color-acc: var(--acc);
+  --color-study: var(--study);
+  --color-work: var(--work);
+  --color-content: var(--content);
+  --color-gym: var(--gym);
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, monospace;
+}
+
+/* ─── Paletas ─────────────────────────────────────────────────────
+   bg/surface/surface2/line: fondos · text/muted: texto · accent/ink: botón
+   principal y su texto · acc: acento usable como texto · study/work/content/gym:
+   colores de categoría. Todo pasa contraste AA. */
+:root,
+[data-palette="grafito"][data-mode="dark"] {
+  color-scheme: dark;
+  --bg: #1f2024; --surface: #28292e; --surface2: #323439; --line: #3b3e45;
+  --text: #ecedee; --muted: #a3a7af; --accent: #c5f06a; --ink: #1a2108; --acc: #c5f06a;
+  --study: #8ab4ff; --work: #f5b85c; --content: #ff92b4; --gym: #7fe0c2;
+}
+[data-palette="grafito"][data-mode="light"] {
+  color-scheme: light;
+  --bg: #f6f6f3; --surface: #ffffff; --surface2: #ecede8; --line: #dcddd6;
+  --text: #1c1d20; --muted: #5e626a; --accent: #4e7a0c; --ink: #ffffff; --acc: #4a730b;
+  --study: #1f5fc9; --work: #8f5400; --content: #b02d63; --gym: #0c6e53;
+}
+[data-palette="indigo"][data-mode="dark"] {
+  color-scheme: dark;
+  --bg: #1c1e26; --surface: #252833; --surface2: #2f3240; --line: #3a3e4d;
+  --text: #e9eaf0; --muted: #a0a4b5; --accent: #9c9eff; --ink: #16173d; --acc: #a9abff;
+  --study: #7cc4ff; --work: #f4b860; --content: #f49ac1; --gym: #6edbb2;
+}
+[data-palette="indigo"][data-mode="light"] {
+  color-scheme: light;
+  --bg: #f4f5f9; --surface: #ffffff; --surface2: #eceef4; --line: #dadde7;
+  --text: #1b1d27; --muted: #5a5f72; --accent: #4f46e5; --ink: #ffffff; --acc: #4f46e5;
+  --study: #1b63b5; --work: #8f5400; --content: #a82a6c; --gym: #0c6e53;
+}
+[data-palette="oceano"][data-mode="dark"] {
+  color-scheme: dark;
+  --bg: #1a2129; --surface: #222b35; --surface2: #2b3541; --line: #37424f;
+  --text: #e8eef3; --muted: #9dabb8; --accent: #5fe0c1; --ink: #05291f; --acc: #5fe0c1;
+  --study: #8fb2ff; --work: #f5bb5e; --content: #f59ac0; --gym: #b9e26c;
+}
+[data-palette="oceano"][data-mode="light"] {
+  color-scheme: light;
+  --bg: #f3f6f8; --surface: #ffffff; --surface2: #e9eef2; --line: #d6dee5;
+  --text: #16202a; --muted: #556472; --accent: #0b7a63; --ink: #ffffff; --acc: #0b7a63;
+  --study: #1f5fc9; --work: #8f5400; --content: #b02d63; --gym: #4b6b0e;
+}
+[data-palette="bosque"][data-mode="dark"] {
+  color-scheme: dark;
+  --bg: #1e2220; --surface: #272c29; --surface2: #313733; --line: #3c433e;
+  --text: #eceee9; --muted: #a4aba4; --accent: #f2b544; --ink: #2a1c00; --acc: #f2b544;
+  --study: #8fb8ff; --work: #ee9a72; --content: #e7a0d2; --gym: #93d9a4;
+}
+[data-palette="bosque"][data-mode="light"] {
+  color-scheme: light;
+  --bg: #f5f4ef; --surface: #ffffff; --surface2: #ecebe4; --line: #dbdad1;
+  --text: #1e221f; --muted: #5c635d; --accent: #e0a126; --ink: #2a1c00; --acc: #875b00;
+  --study: #1f5fc9; --work: #a2461c; --content: #9e2c78; --gym: #2a6b34;
+}
+[data-palette="ciruela"][data-mode="dark"] {
+  color-scheme: dark;
+  --bg: #221e25; --surface: #2b2630; --surface2: #352f3b; --line: #41394a;
+  --text: #f1ecf2; --muted: #ada3b3; --accent: #ff8a6b; --ink: #2e0e05; --acc: #ff957a;
+  --study: #8db6ff; --work: #f6c05c; --content: #e3a0f2; --gym: #7ed8b8;
+}
+[data-palette="ciruela"][data-mode="light"] {
+  color-scheme: light;
+  --bg: #f8f5f6; --surface: #ffffff; --surface2: #f0eaee; --line: #e0d8dd;
+  --text: #221d24; --muted: #645b68; --accent: #c8432a; --ink: #ffffff; --acc: #b23a23;
+  --study: #1f5fc9; --work: #8f5400; --content: #8e2fa3; --gym: #0c6e53;
+}
+
+/* ─── Base: sensación de app nativa en iPhone ─────────────────────── */
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    background: var(--bg);
+  }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    overscroll-behavior-y: none;
+  }
+  /* 16px evita el zoom automático de iOS al enfocar un campo */
+  input, select, textarea { font-size: 16px; }
+  a, button, label, summary { touch-action: manipulation; }
+  button:not(:disabled), summary { cursor: pointer; }
+  :focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
+  summary::-webkit-details-marker { display: none; }
+  summary { list-style: none; }
+}
+
+/* ─── Piezas reutilizables ────────────────────────────────────────── */
+@layer components {
+  /* Tono → variable --c que usan chip, dot, cover… */
+  .tone-study { --c: var(--study); }
+  .tone-work { --c: var(--work); }
+  .tone-content { --c: var(--content); }
+  .tone-gym { --c: var(--gym); }
+  .tone-acc { --c: var(--acc); }
+  .tone-mut { --c: var(--muted); }
+
+  .chip {
+    display: inline-flex; align-items: center; gap: 0.3rem; flex-shrink: 0;
+    height: 1.625rem; padding: 0 0.625rem; border-radius: 9px;
+    font-size: 12px; font-weight: 600; white-space: nowrap;
+    color: var(--c); background: color-mix(in srgb, var(--c) 15%, transparent);
+  }
+  .dot { display: inline-block; width: 10px; height: 10px; border-radius: 9999px; background: var(--c); flex-shrink: 0; }
+  .tinted { color: var(--c); background: color-mix(in srgb, var(--c) 15%, transparent); }
+
+  .section-title { font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+
+  /* Portadas generadas de asignatura */
+  .cover { background-color: color-mix(in srgb, var(--c) 82%, var(--bg)); }
+  .pat-rings { background-image: repeating-radial-gradient(circle at 18% 25%, transparent 0 16px, rgb(0 0 0 / 0.13) 16px 24px); }
+  .pat-diam {
+    background-image:
+      linear-gradient(45deg, rgb(0 0 0 / 0.12) 25%, transparent 25% 75%, rgb(0 0 0 / 0.12) 75%),
+      linear-gradient(45deg, rgb(0 0 0 / 0.12) 25%, transparent 25% 75%, rgb(0 0 0 / 0.12) 75%);
+    background-size: 48px 48px; background-position: 0 0, 24px 24px;
+  }
+  .pat-dots { background-image: radial-gradient(rgb(0 0 0 / 0.22) 2.5px, transparent 3px); background-size: 18px 18px; }
+  .pat-grid {
+    background-image: linear-gradient(rgb(0 0 0 / 0.14) 1px, transparent 1px), linear-gradient(90deg, rgb(0 0 0 / 0.14) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+  .pat-stripes { background-image: repeating-linear-gradient(-45deg, rgb(0 0 0 / 0.12) 0 12px, transparent 12px 24px); }
+
+  /* Línea vertical de la timeline */
+  .tl-axis { position: relative; display: flex; justify-content: center; padding-top: 4px; }
+  .tl-axis::before {
+    content: ""; position: absolute; top: 20px; bottom: -18px; left: 50%; width: 1.5px;
+    transform: translateX(-50%); background: var(--line);
+  }
+  .tl-item:last-child .tl-axis::before { display: none; }
+  .tl-item.is-now .dot { box-shadow: 0 0 0 4px color-mix(in srgb, var(--c) 28%, transparent); }
+
+  /* Bottom sheet nativo (<dialog>) */
+  dialog.sheet {
+    margin: auto auto 0; width: 100%; max-width: 480px; max-height: 92dvh;
+    border: 0; padding: 0; overflow-y: auto; overscroll-behavior: contain;
+    background: var(--surface); color: var(--text); border-radius: 20px 20px 0 0;
+  }
+  dialog.sheet::backdrop { background: rgb(0 0 0 / 0.5); }
+  dialog.sheet[open] { animation: sheet-up 0.24s cubic-bezier(0.2, 0.8, 0.2, 1); }
+}
+
+@keyframes sheet-up { from { transform: translateY(100%); } }
+
+@media (prefers-reduced-motion: reduce) {
+  dialog.sheet[open] { animation: none; }
+}
