@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { FormSheet } from "@/components/ui/form-sheet";
 import { Chip, EmptyState, Row, Section, Skeleton } from "@/components/ui/primitives";
 import { createFlashcard } from "@/features/estudios/actions";
-import { CoverArt } from "@/features/estudios/components/cover-art";
+import { CoverArt } from "@/components/ui/cover-art";
 import { FlashcardFields } from "@/features/estudios/components/fields";
 import { getDecks } from "@/features/estudios/queries";
 
@@ -40,7 +40,7 @@ async function Decks() {
         {decks.map(({ subject, total, due }) => {
           const content = (
             <Row
-              leading={<CoverArt subject={subject} url={null} />}
+              leading={<CoverArt item={subject} url={null} />}
               title={subject.name}
               subtitle={total ? `${total} tarjetas` : "Sin tarjetas todavía"}
               trailing={<Chip tone={due ? "acc" : "mut"}>{due ? `${due} para hoy` : "Al día"}</Chip>}

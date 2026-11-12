@@ -3,17 +3,12 @@ import { cache } from "react";
 import { notFound } from "next/navigation";
 import { requireUser, must } from "@/lib/supabase/server";
 import { signPaths } from "@/lib/storage";
-import { addMonths, daysBetween, daysInMonth, monthStart, todayISO } from "@/lib/dates";
+import { groupBy } from "@/lib/collections";
+import { addMonths, daysBetween, monthStart, todayISO } from "@/lib/dates";
 import type { Education, Exam, Flashcard, StudyFile, Subject, Topic, TopicContent } from "@/lib/types";
 import { masteryPct, priorityScore } from "./logic";
 
 type ExamWithDays = Exam & { days: number };
-
-const groupBy = <T, K>(items: T[], key: (item: T) => K) => {
-  const map = new Map<K, T[]>();
-  items.forEach((item) => map.set(key(item), [...(map.get(key(item)) ?? []), item]));
-  return map;
-};
 
 /** Datos comunes: asignaturas, sus temas y los próximos exámenes (una vez por petición). */
 const loadStudyBase = cache(async () => {
@@ -146,7 +141,6 @@ export async function getExamsView(month?: string) {
   return {
     today,
     month: start,
-    daysInMonth: daysInMonth(start),
     examDays: new Set(monthExams.map((e) => e.exam_date)),
     studyDays: new Set(studyDays.map((d) => d.day)),
     subjects,

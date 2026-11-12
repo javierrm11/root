@@ -41,17 +41,21 @@ export function FieldRow({ children }: { children: ReactNode }) {
   return <div className="grid grid-cols-2 gap-3">{children}</div>;
 }
 
-/** Radios con aspecto de pastilla (sin JS). */
+/** Radios (o casillas, con `multiple`) con aspecto de pastilla, sin JS. */
 export function ChoicePills({
   label,
   name,
   options,
   defaultValue,
+  multiple,
+  defaultValues = [],
 }: {
   label: string;
   name: string;
   options: Option[];
   defaultValue?: string;
+  multiple?: boolean;
+  defaultValues?: string[];
 }) {
   return (
     <fieldset className="flex flex-col gap-1.5">
@@ -59,7 +63,13 @@ export function ChoicePills({
       <div className="flex flex-wrap gap-1.5">
         {options.map((o) => (
           <label key={o.value}>
-            <input type="radio" name={name} value={o.value} defaultChecked={o.value === defaultValue} className="peer sr-only" />
+            <input
+              type={multiple ? "checkbox" : "radio"}
+              name={name}
+              value={o.value}
+              defaultChecked={multiple ? defaultValues.includes(o.value) : o.value === defaultValue}
+              className="peer sr-only"
+            />
             <span className="inline-flex h-9 items-center gap-2 rounded-[9px] bg-surface-2 px-3.5 text-sm font-semibold text-muted peer-checked:bg-fg peer-checked:text-bg peer-focus-visible:outline-2 peer-focus-visible:outline-acc">
               {o.tone && <span className={cn("dot", `tone-${o.tone}`)} aria-hidden />}
               {o.label}

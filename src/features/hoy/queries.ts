@@ -3,6 +3,10 @@ import { requireUser, must } from "@/lib/supabase/server";
 import { addDays, nowTime, todayISO } from "@/lib/dates";
 import type { AgendaItem, Habit, InboxItem } from "@/lib/types";
 import { getNextExam, getPriorityTopics } from "@/features/estudios/queries";
+import { getFreelanceToday } from "@/features/proyectos/queries";
+import { getContentToday } from "@/features/contenido/queries";
+import { getGymToday } from "@/features/gym/queries";
+import { getGoals } from "@/features/objetivos/queries";
 
 /** Racha: días seguidos (hasta hoy o ayer) con al menos un hábito cumplido. */
 function streak(days: Set<string>, today: string) {
@@ -19,13 +23,17 @@ function streak(days: Set<string>, today: string) {
 export async function getToday() {
   const { supabase } = await requireUser();
   const today = todayISO();
-  const [agenda, habits, logs, inbox, nextExam, priority] = await Promise.all([
+  const [agenda, habits, logs, inbox, nextExam, priority, freelance, content, gym, goals] = await Promise.all([
     supabase.from("agenda_items").select("*").eq("day", today).order("start_time", { nullsFirst: true }).then(must<AgendaItem[]>),
     supabase.from("habits").select("*").eq("archived", false).order("position").order("created_at").then(must<Habit[]>),
     supabase.from("habit_logs").select("habit_id, day").gte("day", addDays(today, -366)).then(must<Array<{ habit_id: string; day: string }>>),
     supabase.from("inbox_items").select("id", { count: "exact", head: true }).is("processed_at", null),
     getNextExam(),
     getPriorityTopics(),
+    getFreelanceToday(),
+    getContentToday(),
+    getGymToday(),
+    getGoals(),
   ]);
   const doneToday = new Set(logs.filter((l) => l.day === today).map((l) => l.habit_id));
   return {
@@ -37,6 +45,10 @@ export async function getToday() {
     inboxCount: inbox.count ?? 0,
     nextExam,
     priority,
+    freelance,
+    content,
+    gym: { routines: gym.routinesToday, active: gym.active },
+    goals: goals.goals.slice(0, 4),
   };
 }
 

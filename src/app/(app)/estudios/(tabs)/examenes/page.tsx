@@ -18,12 +18,12 @@ export default function ExamenesPage({ searchParams }: { searchParams: SearchPar
 
 async function Exams({ searchParams }: { searchParams: SearchParams }) {
   const { mes } = await searchParams;
-  const { today, month, daysInMonth, examDays, studyDays, subjects, upcoming } = await getExamsView(mes);
+  const { today, month, examDays, studyDays, subjects, upcoming } = await getExamsView(mes);
 
   return (
     <>
       <Section>
-        <ExamCalendar month={month} today={today} days={daysInMonth} examDays={examDays} studyDays={studyDays} />
+        <ExamCalendar month={month} today={today} examDays={examDays} studyDays={studyDays} />
       </Section>
 
       <Section title="Próximos exámenes" aside={subjects.length > 0 && <AddExamSheet subjects={subjects} />}>

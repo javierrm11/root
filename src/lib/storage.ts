@@ -18,3 +18,10 @@ export async function removePaths(supabase: Db, paths: Array<string | null | und
   const list = paths.filter((p): p is string => Boolean(p));
   if (list.length) await supabase.storage.from(FILES_BUCKET).remove(list);
 }
+
+/** Borra de Storage el archivo al que apunta una columna de una fila (al reemplazarlo o borrar la fila). */
+export async function removeRowFile(supabase: Db, table: string, id: string, column: string) {
+  const { data } = await supabase.from(table).select(column).eq("id", id).maybeSingle();
+  const path = (data as Record<string, string | null> | null)?.[column];
+  await removePaths(supabase, [path]);
+}

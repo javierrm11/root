@@ -6,8 +6,8 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Todo menos estáticos, iconos y archivos de la PWA.
+  // Todo menos estáticos, iconos, archivos de la PWA y /api (MCP y cron llevan su propio secreto).
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|sw.js|manifest.webmanifest|pwa/|apple-icon|icon|.*\\.(?:svg|png|jpg|jpeg|webp|ico)$).*)",
+    "/((?!api/|_next/static|_next/image|favicon.ico|sw.js|manifest.webmanifest|pwa/|apple-icon|icon|.*\\.(?:svg|png|jpg|jpeg|webp|ico)$).*)",
   ],
 };

@@ -4,7 +4,7 @@ import { FormSheet } from "@/components/ui/form-sheet";
 import { Chip, EmptyState, ProgressBar, Skeleton } from "@/components/ui/primitives";
 import { countdown } from "@/lib/dates";
 import { saveSubject } from "@/features/estudios/actions";
-import { CoverArt } from "@/features/estudios/components/cover-art";
+import { CoverArt } from "@/components/ui/cover-art";
 import { SubjectFields } from "@/features/estudios/components/fields";
 import { getSubjectsOverview } from "@/features/estudios/queries";
 
@@ -32,7 +32,7 @@ async function Subjects() {
       <div className="divide-y divide-line">
         {subjects.map((s) => (
           <Link key={s.id} href={`/estudios/asignatura/${s.id}`} className="flex items-center gap-3.5 py-3.5">
-            <CoverArt subject={s} url={s.coverUrl} />
+            <CoverArt item={s} url={s.coverUrl} />
             <span className="flex min-w-0 flex-1 flex-col gap-1">
               <span className="text-[15px] leading-snug font-semibold">{s.name}</span>
               <span className="font-mono text-xs text-muted">

@@ -10,6 +10,7 @@ import { FILE_KINDS, FILE_STATUS, toOptions } from "@/lib/constants";
 import type { StudyFile } from "@/lib/types";
 import { setFlag } from "@/features/common/actions";
 import { addContent, addStudyFile, cycleFileStatus, deleteStudyFile, deleteTopic, setMastery } from "../actions";
+import { generateTopicFlashcards, summarizeTopic } from "../ai";
 import { MAX_MASTERY, topicStatus } from "../logic";
 import type { TopicDetail } from "../queries";
 
@@ -106,12 +107,15 @@ export function TopicItem({
   subjectId,
   userId,
   defaultOpen,
+  ai,
 }: {
   topic: TopicDetail;
   index: number;
   subjectId: string;
   userId: string;
   defaultOpen?: boolean;
+  /** Funciones de IA activas (null si no hay GEMINI_API_KEY). */
+  ai: { resumen: boolean; flashcards: boolean } | null;
 }) {
   const status = topicStatus(topic.mastery, topic.files.length > 0);
   const done = topic.contents.filter((c) => c.done).length;
@@ -146,6 +150,27 @@ export function TopicItem({
         ))}
         {!topic.files.length && <p className="text-[13px] text-muted">Todavía no has subido nada a este tema.</p>}
         <UploadFileSheet subjectId={subjectId} topicId={topic.id} userId={userId} />
+
+        {ai && (ai.resumen || ai.flashcards || topic.summary) && (
+          <>
+            <SubHeading>Con IA</SubHeading>
+            {topic.summary && <div className="rounded-xl bg-surface-2 p-3.5 text-sm leading-relaxed whitespace-pre-line">{topic.summary}</div>}
+            <div className="flex flex-wrap gap-2">
+              {ai.resumen && (
+                <ActionButton action={summarizeTopic.bind(null, topic.id)} className="tinted tone-acc inline-flex h-9 items-center gap-1.5 rounded-[9px] px-3 text-[13px] font-semibold">
+                  <Icon name="sparkles" size={14} />
+                  {topic.summary ? "Rehacer resumen" : "Resumir tema"}
+                </ActionButton>
+              )}
+              {ai.flashcards && (
+                <ActionButton action={generateTopicFlashcards.bind(null, topic.id)} className="tinted tone-acc inline-flex h-9 items-center gap-1.5 rounded-[9px] px-3 text-[13px] font-semibold">
+                  <Icon name="layers" size={14} />
+                  Crear flashcards
+                </ActionButton>
+              )}
+            </div>
+          </>
+        )}
 
         <SubHeading>Contenidos a estudiar</SubHeading>
         <div>

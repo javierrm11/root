@@ -1,6 +1,8 @@
+import Link from "next/link";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/cn";
 import type { Tone } from "@/lib/constants";
+import { formatShortMonth } from "@/lib/dates";
 import { Icon, type IconName } from "./icon";
 
 export function Chip({ tone = "mut", className, children }: { tone?: Tone; className?: string; children: ReactNode }) {
@@ -125,6 +127,52 @@ export function TimelineItem({
       <div className="min-w-0">{children}</div>
       <div>{trailing}</div>
     </div>
+  );
+}
+
+/** Bloque de fecha "26 / NOV" para filas de exámenes, facturas… */
+export function DateBlock({ iso }: { iso: string }) {
+  return (
+    <span className="flex h-[50px] w-[46px] shrink-0 flex-col items-center justify-center rounded-xl bg-surface-2">
+      <span className="text-lg leading-none font-bold">{Number(iso.slice(8, 10))}</span>
+      <span className="mt-0.5 text-[11px] font-semibold text-muted uppercase">{formatShortMonth(iso)}</span>
+    </span>
+  );
+}
+
+/** Filtro con pastillas que son enlaces (?periodo=…), sin JS. */
+export function LinkPills({ items }: { items: Array<{ href: string; label: string; active: boolean; count?: number }> }) {
+  return (
+    <nav className="-mx-5 mb-4 flex gap-1.5 overflow-x-auto px-5 [scrollbar-width:none]">
+      {items.map((item) => (
+        <Link
+          key={item.href}
+          href={item.href}
+          aria-current={item.active ? "page" : undefined}
+          className={cn(
+            "inline-flex h-9 shrink-0 items-center gap-1.5 rounded-[9px] px-3.5 text-sm font-semibold",
+            item.active ? "bg-fg text-bg" : "bg-surface-2 text-muted",
+          )}
+        >
+          {item.label}
+          {item.count !== undefined && <span className="font-mono opacity-70">{item.count}</span>}
+        </Link>
+      ))}
+    </nav>
+  );
+}
+
+/** Barra de progreso por pasos (fases de un vídeo, de un proceso…). */
+export function Steps({ steps, current }: { steps: string[]; current: number }) {
+  return (
+    <ol className="grid gap-1" style={{ gridTemplateColumns: `repeat(${steps.length}, minmax(0, 1fr))` }}>
+      {steps.map((label, i) => (
+        <li key={label} aria-current={i === current ? "step" : undefined} className="flex flex-col gap-1.5 text-center">
+          <span className={cn("h-1 rounded-full", i <= current ? "bg-accent" : "bg-surface-2")} />
+          <span className={cn("text-[11px] font-semibold", i === current ? "text-acc" : "text-muted")}>{label}</span>
+        </li>
+      ))}
+    </ol>
   );
 }
 

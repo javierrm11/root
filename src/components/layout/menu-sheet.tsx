@@ -9,10 +9,10 @@ import { Sheet } from "@/components/ui/sheet";
 
 const MENU: Array<{ href: string; label: string; hint: string; icon: IconName; tone: Tone }> = [
   { href: "/habitos", label: "Hábitos", hint: "Tus rutinas diarias y rachas", icon: "flame", tone: "gym" },
-  { href: "/objetivos", label: "Objetivos del trimestre", hint: "Llega en la fase 4", icon: "target", tone: "acc" },
-  { href: "/revision", label: "Revisión semanal", hint: "Llega en la fase 5", icon: "repeat", tone: "study" },
+  { href: "/objetivos", label: "Objetivos del trimestre", hint: "Conectados a tus módulos", icon: "target", tone: "acc" },
+  { href: "/revision", label: "Revisión semanal", hint: "Resumen y plan con Gemini", icon: "repeat", tone: "study" },
   { href: "/bandeja", label: "Bandeja de entrada", hint: "Lo que apuntas con el botón +", icon: "inbox", tone: "work" },
-  { href: "/ajustes", label: "Ajustes", hint: "Paleta, modo y sesión", icon: "settings", tone: "mut" },
+  { href: "/ajustes", label: "Ajustes", hint: "Paleta, IA, Claude y notificaciones", icon: "settings", tone: "mut" },
 ];
 
 /** Avatar de la cabecera de Hoy que abre el menú con los módulos de apoyo. */

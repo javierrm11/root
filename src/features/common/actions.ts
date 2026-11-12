@@ -3,7 +3,28 @@
 import { mutate } from "@/lib/actions";
 
 /** Tablas cuyas filas se pueden borrar sin limpiar nada en Storage. */
-const DELETABLE = ["topic_contents", "exams", "flashcards", "habits", "agenda_items", "inbox_items"] as const;
+const DELETABLE = [
+  "topic_contents",
+  "exams",
+  "flashcards",
+  "habits",
+  "agenda_items",
+  "inbox_items",
+  "clients",
+  "project_features",
+  "time_entries",
+  "ideas",
+  "invoices",
+  "expenses",
+  "content_ideas",
+  "publish_windows",
+  "routines",
+  "routine_exercises",
+  "workouts",
+  "workout_sets",
+  "body_metrics",
+  "goals",
+] as const;
 export type DeletableTable = (typeof DELETABLE)[number];
 
 /** Borrado genérico. RLS garantiza que solo se borran filas propias. */

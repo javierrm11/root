@@ -63,6 +63,16 @@ export function weekdayMonday(iso: string) {
   return (parseISODate(iso).getUTCDay() + 6) % 7;
 }
 
+/** Lunes de la semana que contiene `iso`. */
+export const weekStart = (iso: string) => addDays(iso, -weekdayMonday(iso));
+
+/** Horas entre dos horas "HH:MM[:SS]" del mismo día. */
+export function hoursBetween(start: string | null, end: string | null) {
+  if (!start || !end) return 0;
+  const minutes = (t: string) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3, 5));
+  return Math.max(0, (minutes(end) - minutes(start)) / 60);
+}
+
 const format = (iso: string, options: Intl.DateTimeFormatOptions) =>
   new Intl.DateTimeFormat(LOCALE, { timeZone: "UTC", ...options }).format(parseISODate(iso)).replace(".", "");
 
@@ -71,12 +81,25 @@ export const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.
 /** "mié 26 nov" */
 export const formatDay = (iso: string) =>
   format(iso, { weekday: "short", day: "numeric", month: "short" }).replace(",", "");
+/** "26 nov" */
+export const formatShortDay = (iso: string) => format(iso, { day: "numeric", month: "short" });
 /** "miércoles, 11 de noviembre" */
 export const formatLongDay = (iso: string) => format(iso, { weekday: "long", day: "numeric", month: "long" });
 /** "noviembre de 2026" */
 export const formatMonth = (iso: string) => format(iso, { month: "long", year: "numeric" });
 /** "nov" */
 export const formatShortMonth = (iso: string) => format(iso, { month: "short" });
+
+export const PERIODS = { mes: "Mes", trimestre: "Trimestre", anio: "Año" } as const;
+export type Period = keyof typeof PERIODS;
+
+/** Primer día del mes, del trimestre o del año que contiene `today`. */
+export function periodStart(today: string, period: Period) {
+  const [year, month] = today.split("-").map(Number);
+  if (period === "anio") return `${year}-01-01`;
+  if (period === "trimestre") return `${year}-${String(Math.floor((month - 1) / 3) * 3 + 1).padStart(2, "0")}-01`;
+  return monthStart(today);
+}
 
 /** "09:30:00" → "09:30" */
 export const formatTime = (time: string | null | undefined) => (time ? time.slice(0, 5) : "");

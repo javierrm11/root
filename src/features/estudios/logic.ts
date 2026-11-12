@@ -54,12 +54,3 @@ export const NEXT_FILE_STATUS: Record<FileStatus, FileStatus> = {
   en_curso: "hecho",
   hecho: "pendiente",
 };
-
-/** Iniciales para la portada cuando no hay símbolo. */
-export const subjectInitials = (name: string) =>
-  name
-    .split(/\s+/)
-    .filter((w) => w.length > 2)
-    .slice(0, 2)
-    .map((w) => w[0]!.toUpperCase())
-    .join("") || name.slice(0, 2).toUpperCase();

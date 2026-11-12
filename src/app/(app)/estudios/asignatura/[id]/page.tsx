@@ -8,11 +8,13 @@ import { Section, Skeleton, Stat, StatRow } from "@/components/ui/primitives";
 import { EXAM_KINDS } from "@/lib/constants";
 import { countdown } from "@/lib/dates";
 import { addTopic, deleteSubject, saveSubject } from "@/features/estudios/actions";
-import { CoverArt } from "@/features/estudios/components/cover-art";
+import { CoverArt } from "@/components/ui/cover-art";
 import { AddExamSheet, ExamRow } from "@/features/estudios/components/exams";
 import { SubjectFields } from "@/features/estudios/components/fields";
 import { FileRow, TopicItem, UploadFileSheet } from "@/features/estudios/components/topic-item";
 import { getSubjectDetail } from "@/features/estudios/queries";
+import { getSettings } from "@/features/ajustes/queries";
+import { aiConfigured } from "@/lib/ai";
 
 type Params = Promise<{ id: string }>;
 
@@ -32,7 +34,11 @@ export default function SubjectPage({ params }: { params: Params }) {
 
 async function Subject({ params }: { params: Params }) {
   const { id } = await params;
-  const { userId, subject, coverUrl, generalFiles, topics, pct, fileCount, boletines, exams, nextExam } = await getSubjectDetail(id);
+  const [{ userId, subject, coverUrl, generalFiles, topics, pct, fileCount, boletines, exams, nextExam }, settings] = await Promise.all([
+    getSubjectDetail(id),
+    getSettings(),
+  ]);
+  const ai = aiConfigured() ? settings.ai : null;
 
   // El primer tema con prioridad se abre solo: es lo que toca estudiar.
   const firstPriority = topics.findIndex((t) => t.mastery <= 1 && t.files.length > 0);
@@ -40,7 +46,7 @@ async function Subject({ params }: { params: Params }) {
 
   return (
     <>
-      <CoverArt subject={subject} url={coverUrl} variant="banner" />
+      <CoverArt item={subject} url={coverUrl} variant="banner" badge={`${subject.course_year}º · ${subject.semester}º cuatri`} />
 
       <div className="mt-4 flex items-start justify-between gap-3">
         <div className="min-w-0">
@@ -91,6 +97,7 @@ async function Subject({ params }: { params: Params }) {
               subjectId={subject.id}
               userId={userId}
               defaultOpen={index === firstPriority}
+              ai={ai}
             />
           ))}
         </div>

@@ -1,9 +1,9 @@
 import { Suspense } from "react";
-import { connection } from "next/server";
+import { io } from "next/cache";
 import { capitalize, formatLongDay, todayISO } from "@/lib/dates";
 
 async function Today() {
-  await connection(); // la fecha se calcula en cada petición, no en el build
+  await io(); // la fecha se calcula en cada petición, no en el build ni en el prefetch
   return <>{capitalize(formatLongDay(todayISO()))}</>;
 }
 

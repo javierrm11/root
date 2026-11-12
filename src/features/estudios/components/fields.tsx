@@ -1,13 +1,7 @@
 // Campos de formulario compartidos entre "crear" y "editar".
+import { CoverFields } from "@/components/ui/cover-art";
 import { ChoicePills, Field, FieldRow, Input, Select, Textarea } from "@/components/ui/field";
-import {
-  COVER_PATTERNS,
-  EDUCATION_KINDS,
-  EDUCATION_LEVELS,
-  EXAM_KINDS,
-  SUBJECT_TONES,
-  toOptions,
-} from "@/lib/constants";
+import { EDUCATION_KINDS, EDUCATION_LEVELS, EXAM_KINDS, toOptions } from "@/lib/constants";
 import type { Education, Exam, Subject } from "@/lib/types";
 
 const subjectOptions = (subjects: Pick<Subject, "id" | "name">[]) => subjects.map((s) => ({ value: s.id, label: s.name }));
@@ -18,14 +12,9 @@ export function SubjectFields({ subject }: { subject?: Subject }) {
       <Field label="Nombre">
         <Input name="name" required defaultValue={subject?.name} placeholder="Introducción a la Programación" />
       </Field>
-      <FieldRow>
-        <Field label="Código">
-          <Input name="code" defaultValue={subject?.code ?? ""} placeholder="GIINF-1.1" />
-        </Field>
-        <Field label="Símbolo" hint="Hasta 4 caracteres">
-          <Input name="glyph" maxLength={4} defaultValue={subject?.glyph ?? ""} placeholder="{ }" />
-        </Field>
-      </FieldRow>
+      <Field label="Código">
+        <Input name="code" defaultValue={subject?.code ?? ""} placeholder="GIINF-1.1" />
+      </Field>
       <FieldRow>
         <Field label="Curso">
           <Input name="course_year" type="number" inputMode="numeric" min={1} max={6} defaultValue={subject?.course_year ?? 1} />
@@ -44,8 +33,7 @@ export function SubjectFields({ subject }: { subject?: Subject }) {
       <Field label="Descripción">
         <Textarea name="description" defaultValue={subject?.description ?? ""} placeholder="De qué va la asignatura" />
       </Field>
-      <ChoicePills label="Color" name="tone" options={toOptions(SUBJECT_TONES)} defaultValue={subject?.tone ?? "study"} />
-      <ChoicePills label="Portada generada" name="pattern" options={toOptions(COVER_PATTERNS)} defaultValue={subject?.pattern ?? "dots"} />
+      <CoverFields value={subject} />
     </>
   );
 }

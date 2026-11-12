@@ -2,19 +2,10 @@
 
 import { redirect } from "next/navigation";
 import { createEmptyCard, fsrs, type CardInput, type Grade } from "ts-fsrs";
-import { invalid, mutate } from "@/lib/actions";
-import {
-  COVER_PATTERNS,
-  EDUCATION_KINDS,
-  EDUCATION_LEVELS,
-  EXAM_KINDS,
-  FILE_KINDS,
-  SUBJECT_TONES,
-  keysOf,
-  type FileStatus,
-} from "@/lib/constants";
-import { oneOf, optInt, optNumber, optText, text, uploadedFile } from "@/lib/form";
-import { removePaths } from "@/lib/storage";
+import { invalid, mutate, upsert } from "@/lib/actions";
+import { EDUCATION_KINDS, EDUCATION_LEVELS, EXAM_KINDS, FILE_KINDS, keysOf, type FileStatus } from "@/lib/constants";
+import { coverFields, oneOf, optInt, optNumber, optText, text, uploadedFile } from "@/lib/form";
+import { removePaths, removeRowFile } from "@/lib/storage";
 import type { Db } from "@/lib/supabase/server";
 import { NEXT_FILE_STATUS } from "./logic";
 
@@ -34,9 +25,7 @@ function subjectFields(fd: FormData) {
     description: optText(fd, "description"),
     course_year: optInt(fd, "course_year") ?? 1,
     semester: oneOf(fd, "semester", ["1", "2"], "1") === "2" ? 2 : 1,
-    tone: oneOf(fd, "tone", keysOf(SUBJECT_TONES), "study"),
-    pattern: oneOf(fd, "pattern", keysOf(COVER_PATTERNS), "dots"),
-    glyph: optText(fd, "glyph")?.slice(0, 4) ?? null,
+    ...coverFields(fd),
   };
 }
 
@@ -46,13 +35,8 @@ export async function saveSubject(id: string | null, fd: FormData) {
     const fields = subjectFields(fd);
     if (!fields.name) return invalid("Ponle un nombre a la asignatura");
     const cover = uploadedFile(fd, userId);
-    if (!id) return supabase.from("subjects").insert({ ...fields, cover_path: cover?.path ?? null });
-
-    if (cover) {
-      const { data } = await supabase.from("subjects").select("cover_path").eq("id", id).single();
-      await removePaths(supabase, [data?.cover_path]);
-    }
-    return supabase.from("subjects").update({ ...fields, ...(cover && { cover_path: cover.path }) }).eq("id", id);
+    if (id && cover) await removeRowFile(supabase, "subjects", id, "cover_path");
+    return upsert(supabase, "subjects", id, { ...fields, ...(cover && { cover_path: cover.path }) });
   });
 }
 
@@ -128,8 +112,7 @@ export async function cycleFileStatus(id: string, current: FileStatus) {
 
 export async function deleteStudyFile(id: string) {
   return mutate(async ({ supabase }) => {
-    const { data } = await supabase.from("study_files").select("storage_path").eq("id", id).single();
-    await removePaths(supabase, [data?.storage_path]);
+    await removeRowFile(supabase, "study_files", id, "storage_path");
     return supabase.from("study_files").delete().eq("id", id);
   });
 }
@@ -149,7 +132,7 @@ export async function saveExam(id: string | null, fd: FormData) {
       grade: optNumber(fd, "grade"),
       notes: optText(fd, "notes"),
     };
-    return id ? supabase.from("exams").update(fields).eq("id", id) : supabase.from("exams").insert(fields);
+    return upsert(supabase, "exams", id, fields);
   });
 }
 
@@ -197,19 +180,14 @@ export async function saveEducation(id: string | null, fd: FormData) {
       notes: optText(fd, "notes"),
       ...(certificate && { certificate_path: certificate.path }),
     };
-    if (!id) return supabase.from("education").insert(fields);
-    if (certificate) {
-      const { data } = await supabase.from("education").select("certificate_path").eq("id", id).single();
-      await removePaths(supabase, [data?.certificate_path]);
-    }
-    return supabase.from("education").update(fields).eq("id", id);
+    if (id && certificate) await removeRowFile(supabase, "education", id, "certificate_path");
+    return upsert(supabase, "education", id, fields);
   });
 }
 
 export async function deleteEducation(id: string) {
   return mutate(async ({ supabase }) => {
-    const { data } = await supabase.from("education").select("certificate_path").eq("id", id).single();
-    await removePaths(supabase, [data?.certificate_path]);
+    await removeRowFile(supabase, "education", id, "certificate_path");
     return supabase.from("education").delete().eq("id", id);
   });
 }

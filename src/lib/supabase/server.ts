@@ -1,9 +1,11 @@
 import "server-only";
 import { cache } from "react";
+import { io } from "next/cache";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createServerClient } from "@supabase/ssr";
 import { SUPABASE_KEY, SUPABASE_URL } from "@/lib/env";
+import { ownerContext } from "./owner";
 
 export async function createClient() {
   const cookieStore = await cookies();
@@ -26,8 +28,15 @@ export type Db = Awaited<ReturnType<typeof createClient>>;
 /**
  * Data Access Layer: devuelve el cliente y el id del usuario o redirige a /login.
  * Lee cookies, así que solo puede usarse dentro de <Suspense> o en Server Actions.
+ *
+ * `io()` saca de cualquier prerender (build o prefetch) todo lo que viene después:
+ * getClaims() compara la caducidad del token con Date.now(), y las consultas usan "hoy".
+ * En peticiones reales y Server Actions se resuelve al instante.
  */
-export const requireUser = cache(async () => {
+export const requireUser = cache(async (): Promise<{ supabase: Db; userId: string }> => {
+  const owner = ownerContext(); // MCP o cron: sesión del propietario, sin cookies
+  if (owner) return owner();
+  await io();
   const supabase = await createClient();
   const { data } = await supabase.auth.getClaims();
   const userId = data?.claims?.sub;
