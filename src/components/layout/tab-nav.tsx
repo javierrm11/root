@@ -35,7 +35,7 @@ export const BottomNav = withPathname(function BottomNavView({ items, pathname }
   return (
     <nav
       aria-label="Navegación principal"
-      className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-bg/92 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl"
+      className="relative z-30 shrink-0 border-t border-line bg-bg pb-[env(safe-area-inset-bottom)]"
     >
       <div className="mx-auto grid h-14 max-w-[480px] grid-cols-5 px-1.5">
         {items.map((item) => {

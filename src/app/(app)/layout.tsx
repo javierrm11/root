@@ -9,15 +9,19 @@ const MODULES: NavItem[] = [
   { href: "/gym", label: "Gym", icon: "gym" },
 ];
 
-/** Marco de la app: columna móvil, botón + de captura y barra inferior. */
+/**
+ * Marco de la app: un contenedor fijo del tamaño de la pantalla donde solo hace scroll
+ * el contenido. La barra inferior va dentro del marco (no flotando sobre la página), así
+ * no salta en la PWA de iOS, que calcula mal la altura de la ventana hasta el primer scroll.
+ */
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
-    <>
-      <main className="mx-auto min-h-dvh max-w-[480px] px-5 pt-[calc(env(safe-area-inset-top)+20px)] pb-[calc(env(safe-area-inset-bottom)+140px)]">
-        {children}
+    <div className="fixed inset-0 flex flex-col">
+      <main className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+        <div className="mx-auto max-w-[480px] px-5 pt-[calc(env(safe-area-inset-top)+20px)] pb-24">{children}</div>
       </main>
       <QuickCapture />
       <BottomNav items={MODULES} />
-    </>
+    </div>
   );
 }
