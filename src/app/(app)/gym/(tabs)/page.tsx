@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { ActionButton } from "@/components/ui/action-button";
 import { ButtonLink } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
-import { Chip, EmptyState, Row, RowList, Section, Skeleton } from "@/components/ui/primitives";
+import { Chip, Columns, EmptyState, Row, RowList, Section, Skeleton } from "@/components/ui/primitives";
 import { cn } from "@/lib/cn";
 import { daysBetween } from "@/lib/dates";
 import { startWorkout } from "@/features/gym/actions";
@@ -25,6 +25,8 @@ async function Today() {
 
   return (
     <>
+      <Columns>
+      <div>
       {active ? (
         <Section title="Entreno en curso">
           <ButtonLink href={`/gym/entreno/${active.id}`} wide icon="play">
@@ -80,6 +82,8 @@ async function Today() {
         </div>
       </Section>
 
+      </div>
+      <div>
       <Section
         title="Récords personales"
         aside={
@@ -100,6 +104,8 @@ async function Today() {
           </EmptyState>
         )}
       </Section>
+      </div>
+      </Columns>
     </>
   );
 }

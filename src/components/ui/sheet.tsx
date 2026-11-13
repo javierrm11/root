@@ -33,7 +33,7 @@ export function Sheet({
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       <div className="flex flex-col gap-4 px-5 pt-2.5 pb-[calc(env(safe-area-inset-bottom)+24px)]">
-        <span className="mx-auto h-1.5 w-10 rounded-full bg-line" aria-hidden />
+        <span className="mx-auto h-1.5 w-10 rounded-full bg-line md:hidden" aria-hidden />
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-lg font-semibold">{title}</h2>
           <IconButton icon="x" label="Cerrar" small onClick={onClose} />

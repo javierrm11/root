@@ -71,7 +71,7 @@ src/app/
   api/cron/notificaciones resumen diario por push (vercel.json, 07:00 UTC)
     habitos, bandeja, ajustes  se abren desde el avatar de Hoy
 src/components/ui/        primitivas reutilizables (ver abajo)
-src/components/layout/    PageHeader, BottomNav/TopNav, MenuSheet, ComingSoon, ThemePicker
+src/components/layout/    nav-config, PageHeader, BottomNav/SideNav/TopNav, MenuSheet, ThemePicker
 src/features/<módulo>/    actions.ts (Server Actions), queries.ts (lecturas), components, logic.ts
 src/lib/                  supabase/ (server, client, proxy, owner), actions, form, dates, constants, types, storage,
                           upload, theme, format, collections, ai (Gemini), push (web-push)
@@ -114,6 +114,14 @@ public/sw.js              service worker (solo fallback offline)
 - **5 paletas** (grafito, índigo, océano, bosque, ciruela), cada una con modo oscuro suave y claro. La de por defecto es **grafito y lima en oscuro**. Se aplican como `data-palette` y `data-mode` en `<html>`; el script de `lib/theme.ts` las pone antes del primer pintado, y Ajustes las guarda en localStorage.
 - Usa siempre tokens de Tailwind (`bg-bg`, `bg-surface`, `bg-surface-2`, `border-line`, `text-fg`, `text-muted`, `bg-accent`/`text-ink`, `text-acc`, `text-study|work|content|gym`) y tonos con `tone-*` + `.chip`/`.dot`/`.tinted`. **Nunca colores hex sueltos.**
 - Mobile-first para iPhone: áreas seguras (`env(safe-area-inset-*)`), inputs de 16px, zonas táctiles de 44px o más, `<dialog>` nativo para los sheets.
+- **Tablet y ordenador**:
+  - El marco de la app (`(app)/layout.tsx`) es fijo y solo hace scroll el contenido.
+  - Desde `md` (tablet), la barra inferior se cambia por `SideNav`: un menú lateral con iconos que en `lg` (ordenador) se muestra completo. Incluye los módulos, los de apoyo y el botón de captura rápida.
+  - Los módulos y el menú están definidos una sola vez, en `components/layout/nav-config.ts`.
+  - El contenido mide `max-w-[480px]` en móvil, `md:max-w-2xl` en tablet y `lg:max-w-5xl` en ordenador.
+  - Las pantallas con varias secciones usan `<Columns>` (dos columnas desde `lg`; en el móvil se apilan en el mismo orden).
+  - Las listas de tarjetas usan la clase `.list-grid` (dos columnas desde `lg`).
+  - Los sheets se abren como ventana centrada desde `md`.
 - Las skills de diseño instaladas en `.claude/skills` (interface-design, ui-ux-pro-max, mobile-native, etc.) sirven para nuevas pantallas.
 
 ## Base de datos

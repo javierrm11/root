@@ -3,19 +3,11 @@
 import Link from "next/link";
 import { useState } from "react";
 import { cn } from "@/lib/cn";
-import type { Tone } from "@/lib/constants";
-import { Icon, type IconName } from "@/components/ui/icon";
+import { Icon } from "@/components/ui/icon";
 import { Sheet } from "@/components/ui/sheet";
+import { MENU } from "./nav-config";
 
-const MENU: Array<{ href: string; label: string; hint: string; icon: IconName; tone: Tone }> = [
-  { href: "/habitos", label: "Hábitos", hint: "Tus rutinas diarias y rachas", icon: "flame", tone: "gym" },
-  { href: "/objetivos", label: "Objetivos del trimestre", hint: "Conectados a tus módulos", icon: "target", tone: "acc" },
-  { href: "/revision", label: "Revisión semanal", hint: "Resumen y plan con Gemini", icon: "repeat", tone: "study" },
-  { href: "/bandeja", label: "Bandeja de entrada", hint: "Lo que apuntas con el botón +", icon: "inbox", tone: "work" },
-  { href: "/ajustes", label: "Ajustes", hint: "Paleta, IA, Claude y notificaciones", icon: "settings", tone: "mut" },
-];
-
-/** Avatar de la cabecera de Hoy que abre el menú con los módulos de apoyo. */
+/** Avatar de la cabecera de Hoy (solo móvil) que abre el menú con los módulos de apoyo. */
 export function MenuSheet() {
   const [open, setOpen] = useState(false);
   return (
@@ -24,7 +16,7 @@ export function MenuSheet() {
         type="button"
         aria-label="Abrir menú"
         onClick={() => setOpen(true)}
-        className="grid size-11 place-items-center rounded-xl bg-accent text-ink active:opacity-70"
+        className="grid size-11 place-items-center rounded-xl bg-accent text-ink active:opacity-70 md:hidden"
       >
         <Icon name="user" />
       </button>

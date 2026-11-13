@@ -29,7 +29,7 @@ async function Subjects() {
         </EmptyState>
       )}
 
-      <div className="divide-y divide-line">
+      <div className="list-grid">
         {subjects.map((s) => (
           <Link key={s.id} href={`/estudios/asignatura/${s.id}`} className="flex items-center gap-3.5 py-3.5">
             <CoverArt item={s} url={s.coverUrl} />

@@ -36,7 +36,7 @@ async function Decks() {
         </FormSheet>
       }
     >
-      <div className="divide-y divide-line">
+      <div className="list-grid">
         {decks.map(({ subject, total, due }) => {
           const content = (
             <Row

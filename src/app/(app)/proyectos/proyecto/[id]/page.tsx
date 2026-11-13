@@ -4,7 +4,7 @@ import { ActionButton } from "@/components/ui/action-button";
 import { CoverArt } from "@/components/ui/cover-art";
 import { FormSheet } from "@/components/ui/form-sheet";
 import { Icon } from "@/components/ui/icon";
-import { Chip, Row, RowList, Section, Skeleton, Stat, StatRow } from "@/components/ui/primitives";
+import { Chip, Columns, Row, RowList, Section, Skeleton, Stat, StatRow } from "@/components/ui/primitives";
 import { PROJECT_STATUS } from "@/lib/constants";
 import { formatDay } from "@/lib/dates";
 import { formatHours, formatMoney, formatPerHour } from "@/lib/format";
@@ -70,6 +70,8 @@ async function Project({ params }: { params: Params }) {
         </StatRow>
       </div>
 
+      <Columns>
+      <div>
       <Section title="Ficha" aside={<Chip tone={status.tone}>{status.label}</Chip>}>
         {project.description && <p className="mb-3 text-[15px] leading-relaxed">{project.description}</p>}
         {project.tech.length > 0 && (
@@ -103,6 +105,8 @@ async function Project({ params }: { params: Params }) {
         <FeatureBoard features={features} />
       </Section>
 
+      </div>
+      <div>
       <Section
         title="Horas"
         aside={<LogHoursSheet projects={activeProjects} projectId={project.id} today={today} trigger={{ label: "Apuntar" }} />}
@@ -134,6 +138,8 @@ async function Project({ params }: { params: Params }) {
           )}
         </Section>
       )}
+      </div>
+      </Columns>
 
       <div className="mt-6 flex justify-center">
         <ActionButton

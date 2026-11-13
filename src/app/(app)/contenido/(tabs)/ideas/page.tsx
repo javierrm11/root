@@ -30,7 +30,7 @@ async function Ideas() {
         </EmptyState>
       )}
 
-      <div className="divide-y divide-line">
+      <div className="list-grid">
         {ideas.map((idea) => (
           <div key={idea.id} className="flex flex-col gap-2 py-4">
             <p className="text-[15px] font-semibold">{idea.title}</p>

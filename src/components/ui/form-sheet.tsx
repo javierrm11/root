@@ -12,8 +12,8 @@ import { Sheet } from "./sheet";
 export type Trigger = {
   label: string;
   icon?: IconName;
-  /** "icon" muestra solo el icono; "fab" es el botón flotante de captura. */
-  variant?: ButtonVariant | "icon" | "fab";
+  /** "icon": solo el icono · "fab": botón flotante · "side": botón del menú lateral (texto solo en ordenador). */
+  variant?: ButtonVariant | "icon" | "fab" | "side";
   wide?: boolean;
 };
 
@@ -95,6 +95,20 @@ export function FormSheet({
 }
 
 function TriggerButton({ label, icon, variant = "link", wide, onClick }: Trigger & { onClick: () => void }) {
+  if (variant === "side") {
+    return (
+      <button
+        type="button"
+        aria-label={label}
+        title={label}
+        onClick={onClick}
+        className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-accent font-semibold text-ink transition-opacity hover:opacity-90 active:opacity-70"
+      >
+        <Icon name={icon ?? "plus"} size={20} />
+        <span className="hidden lg:inline">{label}</span>
+      </button>
+    );
+  }
   if (variant === "icon") return <IconButton icon={icon ?? "plus"} label={label} onClick={onClick} />;
   if (variant === "fab") {
     return (

@@ -74,17 +74,24 @@ export function AgendaTimeline({ items, now }: { items: AgendaItem[]; now: strin
   );
 }
 
-/** Botón flotante "+" con la captura rápida, presente en toda la app. */
-export function QuickCapture() {
+/**
+ * Captura rápida, presente en toda la app: botón "+" flotante en el móvil
+ * (placement="fab") o botón al pie del menú lateral en tablet y ordenador (placement="side").
+ */
+export function QuickCapture({ placement }: { placement: "fab" | "side" }) {
+  const sheet = (
+    <FormSheet title="Captura rápida" trigger={{ label: "Captura rápida", icon: "plus", variant: placement }} action={createInboxItem}>
+      <Field label="Qué quieres apuntar">
+        <Textarea name="content" required placeholder="Idea, tarea, nota… lo que tengas en la cabeza" className="min-h-28" />
+      </Field>
+      <ChoicePills label="Tipo" name="kind" options={toOptions(INBOX_KINDS)} defaultValue="tarea" />
+      <p className="text-[13px] text-muted">Va a la bandeja de entrada y lo clasificas cuando quieras.</p>
+    </FormSheet>
+  );
+  if (placement === "side") return sheet;
   return (
-    <div className="pointer-events-none absolute inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+72px)] z-30 mx-auto flex max-w-[480px] justify-end px-5">
-      <FormSheet title="Captura rápida" trigger={{ label: "Captura rápida", variant: "fab" }} action={createInboxItem}>
-        <Field label="Qué quieres apuntar">
-          <Textarea name="content" required placeholder="Idea, tarea, nota… lo que tengas en la cabeza" className="min-h-28" />
-        </Field>
-        <ChoicePills label="Tipo" name="kind" options={toOptions(INBOX_KINDS)} defaultValue="tarea" />
-        <p className="text-[13px] text-muted">Va a la bandeja de entrada y lo clasificas cuando quieras.</p>
-      </FormSheet>
+    <div className="pointer-events-none absolute inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+72px)] z-30 mx-auto flex max-w-[480px] justify-end px-5 md:hidden">
+      {sheet}
     </div>
   );
 }

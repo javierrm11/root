@@ -4,7 +4,7 @@ import { MenuSheet } from "@/components/layout/menu-sheet";
 import { PageHeader } from "@/components/layout/page-header";
 import { TodayLabel } from "@/components/layout/today-label";
 import { CheckRow } from "@/components/ui/check-row";
-import { Chip, Dot, EmptyState, Row, RowList, Section, Skeleton, Stat, StatRow } from "@/components/ui/primitives";
+import { Chip, Columns, Dot, EmptyState, Row, RowList, Section, Skeleton, Stat, StatRow } from "@/components/ui/primitives";
 import { EXAM_KINDS, INVOICE_STATUS } from "@/lib/constants";
 import { countdown, formatDay } from "@/lib/dates";
 import { formatMoney } from "@/lib/format";
@@ -45,6 +45,8 @@ async function Today() {
         </Link>
       </StatRow>
 
+      <Columns>
+      <div>
       {priority.length > 0 && (
         <Section title="Toca estudiar">
           <RowList>
@@ -122,7 +124,9 @@ async function Today() {
           </RowList>
         </Section>
       )}
+      </div>
 
+      <div>
       {(gym.active || gym.routines.length > 0) && (
         <Section title="Gym">
           <Link href={gym.active ? `/gym/entreno/${gym.active.id}` : "/gym"} className="block">
@@ -173,6 +177,8 @@ async function Today() {
           </EmptyState>
         )}
       </Section>
+      </div>
+      </Columns>
     </>
   );
 }

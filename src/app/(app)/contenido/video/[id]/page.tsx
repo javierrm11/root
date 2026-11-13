@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { ActionButton } from "@/components/ui/action-button";
 import { FormSheet } from "@/components/ui/form-sheet";
 import { Icon } from "@/components/ui/icon";
-import { Chip, Row, RowList, Section, Skeleton, Stat, StatRow, Steps } from "@/components/ui/primitives";
+import { Chip, Columns, Row, RowList, Section, Skeleton, Stat, StatRow, Steps } from "@/components/ui/primitives";
 import { VIDEO_FORMATS, VIDEO_STAGES, VIDEO_TASKS } from "@/lib/constants";
 import { formatShortDay, formatTime } from "@/lib/dates";
 import { deleteVideo, saveVideo, setVideoStage } from "@/features/contenido/actions";
@@ -70,6 +70,8 @@ async function Video({ params }: { params: Params }) {
         })}
       </StatRow>
 
+      <Columns>
+      <div>
       <Section title="Guion">
         <div className="divide-y divide-line">
           {script.map(([label, value]) => (
@@ -81,6 +83,8 @@ async function Video({ params }: { params: Params }) {
         </div>
       </Section>
 
+      </div>
+      <div>
       {details.length > 0 && (
         <Section title="Detalles">
           <RowList>
@@ -90,6 +94,8 @@ async function Video({ params }: { params: Params }) {
           </RowList>
         </Section>
       )}
+      </div>
+      </Columns>
 
       {next && (
         <ActionButton action={setVideoStage.bind(null, video.id, next)} className="mt-4 h-11 w-full rounded-xl bg-accent font-semibold text-ink">

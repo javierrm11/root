@@ -53,6 +53,14 @@ export function ProgressBar({ value, tone, className }: { value: number; tone?: 
   );
 }
 
+/**
+ * Reparte secciones en dos columnas en ordenador (en el móvil van una debajo de otra).
+ * Cada hijo directo es una columna: <Columns><div>…</div><div>…</div></Columns>.
+ */
+export function Columns({ children }: { children: ReactNode }) {
+  return <div className="columns">{children}</div>;
+}
+
 /** Fila con título y subtítulo, la pieza básica de las listas. */
 export function Row({
   leading,

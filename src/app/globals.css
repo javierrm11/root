@@ -174,7 +174,33 @@
 }
 
 @keyframes sheet-up { from { transform: translateY(100%); } }
+@keyframes sheet-pop { from { opacity: 0; transform: translateY(8px) scale(0.98); } }
+
+/* Tablet y ordenador: los sheets son ventanas centradas */
+@media (min-width: 48rem) {
+  dialog.sheet { margin: auto; max-width: 520px; max-height: 85dvh; border-radius: 20px; }
+  dialog.sheet[open] { animation: sheet-pop 0.18s cubic-bezier(0.2, 0.8, 0.2, 1); }
+}
 
 @media (prefers-reduced-motion: reduce) {
   dialog.sheet[open] { animation: none; }
+}
+
+/* ─── Diseño a dos columnas en ordenador ──────────────────────────────
+   Fuera de @layer a propósito: debe ganar a `first:border-t-0` de <Section>. */
+
+/* <Columns>: en el móvil, columnas una debajo de otra (con su línea de separación);
+   desde lg, dos columnas. */
+.columns > * { min-width: 0; }
+.columns > * + * > section:first-child { border-top: 1px solid var(--line); padding-top: 1.25rem; }
+@media (min-width: 64rem) {
+  .columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; column-gap: 3rem; }
+  .columns > * + * > section:first-child { border-top: 0; padding-top: 0.25rem; }
+}
+
+/* .list-grid: listas de tarjetas (asignaturas, proyectos, ideas…) a dos columnas desde lg */
+.list-grid > * + * { border-top: 1px solid var(--line); }
+@media (min-width: 64rem) {
+  .list-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 2.5rem; }
+  .list-grid > :nth-child(2) { border-top: 0; }
 }

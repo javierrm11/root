@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { PageHeader } from "@/components/layout/page-header";
 import { ActionButton } from "@/components/ui/action-button";
 import { Icon } from "@/components/ui/icon";
-import { Chip, Dot, EmptyState, Row, RowList, Section, Skeleton } from "@/components/ui/primitives";
+import { Chip, Columns, Dot, EmptyState, Row, RowList, Section, Skeleton } from "@/components/ui/primitives";
 import { aiConfigured } from "@/lib/ai";
 import { AGENDA_CATEGORIES } from "@/lib/constants";
 import { formatDay, formatShortDay } from "@/lib/dates";
@@ -37,6 +37,8 @@ async function Review() {
     <>
       <PageHeader title="Revisión" eyebrow={`Semana del ${formatShortDay(start)} al ${formatShortDay(end)}`} back={{ href: "/", label: "Hoy" }} />
 
+      <Columns>
+      <div>
       {review?.summary ? (
         <Section title="Resumen de Gemini">
           <p className="text-[15px] leading-relaxed">{review.summary}</p>
@@ -65,6 +67,8 @@ async function Review() {
         </RowList>
       </Section>
 
+      </div>
+      <div>
       {review && review.good.length > 0 && (
         <Section title="Lo que salió bien">
           <RowList>
@@ -108,6 +112,8 @@ async function Review() {
           </RowList>
         </Section>
       )}
+      </div>
+      </Columns>
     </>
   );
 }

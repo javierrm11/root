@@ -4,7 +4,7 @@ import { ActionButton } from "@/components/ui/action-button";
 import { FormSheet } from "@/components/ui/form-sheet";
 import { Icon } from "@/components/ui/icon";
 import { InlineAdd } from "@/components/ui/inline-add";
-import { Section, Skeleton, Stat, StatRow } from "@/components/ui/primitives";
+import { Columns, Section, Skeleton, Stat, StatRow } from "@/components/ui/primitives";
 import { EXAM_KINDS } from "@/lib/constants";
 import { countdown } from "@/lib/dates";
 import { addTopic, deleteSubject, saveSubject } from "@/features/estudios/actions";
@@ -78,6 +78,8 @@ async function Subject({ params }: { params: Params }) {
         </StatRow>
       </div>
 
+      <Columns>
+      <div>
       <Section title="General" aside={<span className="text-[13px] text-muted">Guía docente, calendario…</span>}>
         <div className="flex flex-col gap-2">
           {generalFiles.map((file) => (
@@ -106,6 +108,8 @@ async function Subject({ params }: { params: Params }) {
         </div>
       </Section>
 
+      </div>
+      <div>
       <Section title="Exámenes" aside={<AddExamSheet subjects={subjectRef} subjectId={subject.id} />}>
         {exams.length ? (
           <div className="divide-y divide-line">
@@ -124,6 +128,8 @@ async function Subject({ params }: { params: Params }) {
           <p className="text-sm text-muted">Añade la fecha del examen para ver la cuenta atrás y cuándo empezar.</p>
         )}
       </Section>
+      </div>
+      </Columns>
 
       <div className="mt-6 flex justify-center">
         <ActionButton

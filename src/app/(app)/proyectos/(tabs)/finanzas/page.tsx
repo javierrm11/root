@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { ActionButton } from "@/components/ui/action-button";
 import { FormSheet } from "@/components/ui/form-sheet";
 import { Icon } from "@/components/ui/icon";
-import { LinkPills, ProgressBar, Row, RowList, Section, Skeleton, Stat, StatRow } from "@/components/ui/primitives";
+import { Columns, LinkPills, ProgressBar, Row, RowList, Section, Skeleton, Stat, StatRow } from "@/components/ui/primitives";
 import { EXPENSE_CATEGORIES } from "@/lib/constants";
 import { PERIODS, formatDay, todayISO, type Period } from "@/lib/dates";
 import { formatHours, formatMoney, formatPerHour } from "@/lib/format";
@@ -42,6 +42,8 @@ async function Finances({ searchParams }: { searchParams: SearchParams }) {
         <Stat value={formatMoney(f.outstanding)} label="Por cobrar" accent />
       </StatRow>
 
+      <Columns>
+      <div>
       <Section title="Balance" aside={<span className="text-[13px] text-muted">Desde el {formatDay(f.start)}</span>}>
         <RowList>
           <Row title="Cobrado" trailing={<span className="font-mono text-sm font-semibold">{formatMoney(f.collected)}</span>} />
@@ -64,6 +66,8 @@ async function Finances({ searchParams }: { searchParams: SearchParams }) {
         )}
       </Section>
 
+      </div>
+      <div>
       <Section
         title="Gastos"
         aside={
@@ -108,6 +112,8 @@ async function Finances({ searchParams }: { searchParams: SearchParams }) {
           </div>
         </Section>
       )}
+      </div>
+      </Columns>
 
       <p className="pt-2 text-[13px] text-muted">
         Sin IVA ni IRPF porque no estás dado de alta como autónomo. Si te das de alta, aquí irán las estimaciones de los modelos 303 y 130.

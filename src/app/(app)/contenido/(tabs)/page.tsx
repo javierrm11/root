@@ -3,7 +3,7 @@ import { ActionButton } from "@/components/ui/action-button";
 import { FormSheet } from "@/components/ui/form-sheet";
 import { Icon } from "@/components/ui/icon";
 import { MonthCalendar } from "@/components/ui/month-calendar";
-import { Row, RowList, Section, Skeleton } from "@/components/ui/primitives";
+import { Columns, Row, RowList, Section, Skeleton } from "@/components/ui/primitives";
 import { VIDEO_TASKS, WEEKDAYS } from "@/lib/constants";
 import { capitalize, formatLongDay, formatTime } from "@/lib/dates";
 import { deleteRow } from "@/features/common/actions";
@@ -30,6 +30,8 @@ async function Calendar({ searchParams }: { searchParams: SearchParams }) {
 
   return (
     <>
+      <Columns>
+      <div>
       <Section>
         <MonthCalendar
           month={month}
@@ -44,6 +46,8 @@ async function Calendar({ searchParams }: { searchParams: SearchParams }) {
         />
       </Section>
 
+      </div>
+      <div>
       <Section
         title={capitalize(formatLongDay(selected))}
         aside={selectedIsWindow && <span className="text-[13px] font-semibold text-acc">Ventana recomendada</span>}
@@ -91,6 +95,8 @@ async function Calendar({ searchParams }: { searchParams: SearchParams }) {
           <p className="text-sm text-muted">Las mejores horas para publicar te las sugerirá Claude (fase 5). Mientras, puedes añadirlas a mano.</p>
         )}
       </Section>
+      </div>
+      </Columns>
     </>
   );
 }

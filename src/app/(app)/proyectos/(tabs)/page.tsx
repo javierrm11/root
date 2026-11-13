@@ -69,7 +69,7 @@ async function Projects() {
 
 function ProjectList({ projects }: { projects: Array<ProjectSummary & { coverUrl: string | null }> }) {
   return (
-    <div className="divide-y divide-line">
+    <div className="list-grid">
       {projects.map((p) => {
         const status = PROJECT_STATUS[p.status];
         return (

@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { EmptyState, Section, Skeleton } from "@/components/ui/primitives";
+import { Columns, EmptyState, Section, Skeleton } from "@/components/ui/primitives";
 import { startAdvice } from "@/features/estudios/logic";
 import { AddExamSheet, ExamCalendar, ExamRow } from "@/features/estudios/components/exams";
 import { getExamsView } from "@/features/estudios/queries";
@@ -22,10 +22,14 @@ async function Exams({ searchParams }: { searchParams: SearchParams }) {
 
   return (
     <>
+      <Columns>
+      <div>
       <Section>
         <ExamCalendar month={month} today={today} examDays={examDays} studyDays={studyDays} />
       </Section>
 
+      </div>
+      <div>
       <Section title="Próximos exámenes" aside={subjects.length > 0 && <AddExamSheet subjects={subjects} />}>
         {upcoming.length ? (
           <div className="divide-y divide-line">
@@ -48,6 +52,8 @@ async function Exams({ searchParams }: { searchParams: SearchParams }) {
           </EmptyState>
         )}
       </Section>
+      </div>
+      </Columns>
     </>
   );
 }

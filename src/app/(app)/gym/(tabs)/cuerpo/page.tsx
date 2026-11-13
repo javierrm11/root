@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { ActionButton } from "@/components/ui/action-button";
 import { FormSheet } from "@/components/ui/form-sheet";
 import { Icon } from "@/components/ui/icon";
-import { Row, RowList, Section, Skeleton, Stat, StatRow } from "@/components/ui/primitives";
+import { Columns, Row, RowList, Section, Skeleton, Stat, StatRow } from "@/components/ui/primitives";
 import { PHOTO_ANGLES } from "@/lib/constants";
 import { formatShortDay, todayISO } from "@/lib/dates";
 import { deleteRow } from "@/features/common/actions";
@@ -36,6 +36,8 @@ async function Body() {
         <Stat value={weights.length} label="Registros" />
       </StatRow>
 
+      <Columns>
+      <div>
       <Section
         title="Peso y medidas"
         aside={
@@ -72,6 +74,8 @@ async function Body() {
         )}
       </Section>
 
+      </div>
+      <div>
       <Section title="Fotos de progreso" aside={<span className="text-[13px] text-muted">Privadas</span>}>
         {photos.length > 0 && (
           <div className="mb-3 grid grid-cols-3 gap-2">
@@ -99,6 +103,8 @@ async function Body() {
           <PhotoFields today={today} />
         </FormSheet>
       </Section>
+      </div>
+      </Columns>
     </>
   );
 }
