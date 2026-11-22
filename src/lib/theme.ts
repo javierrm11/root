@@ -15,14 +15,11 @@ export const DEFAULT_PALETTE: PaletteId = "grafito";
 export const DEFAULT_MODE: Mode = "dark";
 export const STORAGE_KEYS = { palette: "root-palette", mode: "root-mode" } as const;
 
-/** Script que aplica el tema guardado antes del primer pintado (evita parpadeo). */
-export const themeScript = `(function(){try{var d=document.documentElement;d.dataset.palette=localStorage.getItem("${STORAGE_KEYS.palette}")||"${DEFAULT_PALETTE}";d.dataset.mode=localStorage.getItem("${STORAGE_KEYS.mode}")||"${DEFAULT_MODE}";}catch(e){}})();`;
+/** Color de fondo (y de la barra de estado) de cada paleta y modo, para el script de abajo. */
+const BACKGROUNDS = Object.fromEntries(PALETTES.map((p) => [p.id, { dark: p.dark, light: p.light }]));
 
 /**
- * Hueco inferior de la PWA de iOS (--vh-gap), antes del primer pintado.
- * Con la barra de estado "black-translucent", WebKit hace la ventana más corta que la pantalla
- * (le falta el alto de la barra de estado) y no pinta nada por debajo. Lo que falta ya cubre
- * la zona de la raya de inicio, así que --safe-bottom (globals.css) le resta este hueco.
- * Fuera de la app instalada, o si Apple lo arregla, el hueco es 0 y no cambia nada.
+ * Script que aplica el tema guardado antes del primer pintado (evita parpadeo)
+ * y pinta la barra de estado del iPhone (meta theme-color) con el fondo de ese tema.
  */
-export const viewportScript = `(function(){if(!navigator.standalone)return;var d=document.documentElement;function s(){var a=screen.width,b=screen.height,h=matchMedia("(orientation: portrait)").matches?Math.max(a,b):Math.min(a,b);d.style.setProperty("--vh-gap",Math.max(0,h-innerHeight)+"px")}s();addEventListener("orientationchange",s);addEventListener("resize",s)})();`;
+export const themeScript = `(function(){try{var d=document.documentElement,b=${JSON.stringify(BACKGROUNDS)};var p=localStorage.getItem("${STORAGE_KEYS.palette}")||"${DEFAULT_PALETTE}",m=localStorage.getItem("${STORAGE_KEYS.mode}")||"${DEFAULT_MODE}";d.dataset.palette=p;d.dataset.mode=m;var c=(b[p]||b["${DEFAULT_PALETTE}"])[m==="light"?"light":"dark"];var s=function(){var t=document.querySelector('meta[name="theme-color"]');if(t)t.setAttribute("content",c);return t};if(!s())document.addEventListener("DOMContentLoaded",s);}catch(e){}})();`;
