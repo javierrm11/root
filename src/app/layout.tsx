@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import { PwaRegister } from "@/components/layout/pwa-register";
-import { DEFAULT_MODE, DEFAULT_PALETTE, PALETTES, themeScript } from "@/lib/theme";
+import { DEFAULT_MODE, DEFAULT_PALETTE, PALETTES, themeScript, viewportScript } from "@/lib/theme";
 import "./globals.css";
 
 const inter = Inter({ variable: "--font-inter", subsets: ["latin"] });
@@ -32,7 +32,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       suppressHydrationWarning
     >
       <head>
-        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        <script dangerouslySetInnerHTML={{ __html: themeScript + viewportScript }} />
       </head>
       <body className="min-h-dvh">
         {children}

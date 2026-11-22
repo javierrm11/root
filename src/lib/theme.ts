@@ -17,3 +17,12 @@ export const STORAGE_KEYS = { palette: "root-palette", mode: "root-mode" } as co
 
 /** Script que aplica el tema guardado antes del primer pintado (evita parpadeo). */
 export const themeScript = `(function(){try{var d=document.documentElement;d.dataset.palette=localStorage.getItem("${STORAGE_KEYS.palette}")||"${DEFAULT_PALETTE}";d.dataset.mode=localStorage.getItem("${STORAGE_KEYS.mode}")||"${DEFAULT_MODE}";}catch(e){}})();`;
+
+/**
+ * Altura real de la app instalada en iOS (--app-h), antes del primer pintado.
+ * En la PWA de iOS con la barra de estado "black-translucent", la ventana mide la pantalla
+ * menos la barra de estado y queda un hueco abajo (fallo de WebKit; 100vh/100% no lo arreglan).
+ * Instalada, la app ocupa la pantalla entera, así que se usa el alto físico del dispositivo.
+ * En navegador o en otros sistemas no se define y el marco usa 100dvh.
+ */
+export const viewportScript = `(function(){if(!navigator.standalone)return;var d=document.documentElement;function s(){var a=screen.width,b=screen.height,p=matchMedia("(orientation: portrait)").matches;d.style.setProperty("--app-h",(p?Math.max(a,b):Math.min(a,b))+"px")}s();addEventListener("orientationchange",s);addEventListener("resize",s)})();`;

@@ -115,7 +115,7 @@ public/sw.js              service worker (solo fallback offline)
 - Usa siempre tokens de Tailwind (`bg-bg`, `bg-surface`, `bg-surface-2`, `border-line`, `text-fg`, `text-muted`, `bg-accent`/`text-ink`, `text-acc`, `text-study|work|content|gym`) y tonos con `tone-*` + `.chip`/`.dot`/`.tinted`. **Nunca colores hex sueltos.**
 - Mobile-first para iPhone: áreas seguras (`env(safe-area-inset-*)`), inputs de 16px, zonas táctiles de 44px o más, `<dialog>` nativo para los sheets.
 - **Tablet y ordenador**:
-  - El marco de la app (`(app)/layout.tsx`) es fijo y solo hace scroll el contenido.
+  - El marco de la app (`(app)/layout.tsx`) es fijo y solo hace scroll el contenido. Mide `var(--app-h, 100dvh)`: en la PWA instalada de iOS, `viewportScript` (lib/theme.ts) pone `--app-h` al alto físico de la pantalla, porque con la barra de estado `black-translucent` WebKit calcula una ventana más corta y la barra inferior quedaba subida.
   - Desde `md` (tablet), la barra inferior se cambia por `SideNav`: un menú lateral con iconos que en `lg` (ordenador) se muestra completo. Incluye los módulos, los de apoyo y el botón de captura rápida.
   - Los módulos y el menú están definidos una sola vez, en `components/layout/nav-config.ts`.
   - El contenido mide `max-w-[480px]` en móvil, `md:max-w-2xl` en tablet y `lg:max-w-5xl` en ordenador.
