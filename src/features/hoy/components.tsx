@@ -90,7 +90,7 @@ export function QuickCapture({ placement }: { placement: "fab" | "side" }) {
   );
   if (placement === "side") return sheet;
   return (
-    <div className="pointer-events-none absolute inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+72px)] z-30 mx-auto flex max-w-[480px] justify-end px-5 md:hidden">
+    <div className="pointer-events-none absolute inset-x-0 bottom-[calc(var(--safe-bottom)+72px)] z-30 mx-auto flex max-w-[480px] justify-end px-5 md:hidden">
       {sheet}
     </div>
   );

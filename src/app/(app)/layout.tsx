@@ -11,8 +11,7 @@ import { QuickCapture } from "@/features/hoy/components";
  */
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
-    // Anclado arriba con alto explícito: --app-h en la PWA de iOS (ver viewportScript), 100dvh en el resto.
-    <div className="fixed inset-x-0 top-0 flex h-[var(--app-h,100dvh)] flex-col md:flex-row">
+    <div className="fixed inset-0 flex flex-col md:flex-row">
       <SideNav items={MODULES} secondary={MENU} footer={<QuickCapture placement="side" />} />
       <main className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
         <div className="mx-auto max-w-[480px] px-5 pt-[calc(env(safe-area-inset-top)+20px)] pb-24 md:max-w-2xl md:px-8 md:pt-[calc(env(safe-area-inset-top)+32px)] md:pb-16 lg:max-w-5xl">

@@ -100,6 +100,9 @@
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
     background: var(--bg);
+    /* Margen inferior seguro que cae dentro de la ventana: en la PWA de iOS la ventana
+       acaba --vh-gap antes del borde (ver viewportScript), así que se descuenta. */
+    --safe-bottom: max(0px, calc(env(safe-area-inset-bottom) - var(--vh-gap, 0px)));
   }
   body {
     background: var(--bg);

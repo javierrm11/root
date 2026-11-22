@@ -34,7 +34,7 @@ function withPathname(View: (props: ViewProps) => ReactNode) {
 /** Barra inferior estilo app (solo móvil): 5 módulos con icono y etiqueta. */
 export const BottomNav = withPathname(function BottomNavView({ items, pathname }) {
   return (
-    <nav aria-label="Navegación principal" className="relative z-30 shrink-0 border-t border-line bg-bg pb-[env(safe-area-inset-bottom)] md:hidden">
+    <nav aria-label="Navegación principal" className="relative z-30 shrink-0 border-t border-line bg-bg pb-[var(--safe-bottom)] md:hidden">
       <div className="mx-auto grid h-14 max-w-[480px] grid-cols-5 px-1.5">
         {items.map((item) => {
           const active = isActive(pathname, item);
