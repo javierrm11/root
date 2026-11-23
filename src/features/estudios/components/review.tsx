@@ -7,6 +7,7 @@ import { EmptyState, ProgressBar } from "@/components/ui/primitives";
 import { cn } from "@/lib/cn";
 import type { Tone } from "@/lib/constants";
 import type { Flashcard } from "@/lib/types";
+import { useRefreshOnLeave } from "@/lib/use-refresh-on-leave";
 import { reviewFlashcard } from "../actions";
 
 const scheduler = fsrs();
@@ -35,6 +36,7 @@ export function Review({ cards }: { cards: Flashcard[] }) {
   const [index, setIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const [pending, startTransition] = useTransition();
+  const markChanged = useRefreshOnLeave();
   const card = cards[index];
 
   // Intervalo que tendría la tarjeta con cada respuesta.
@@ -62,6 +64,7 @@ export function Review({ cards }: { cards: Flashcard[] }) {
     startTransition(async () => {
       const result = await reviewFlashcard(card.id, grade);
       if (result?.error) return window.alert(result.error);
+      markChanged();
       setFlipped(false);
       setIndex((i) => i + 1);
     });

@@ -3,6 +3,12 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
+  experimental: {
+    // Las páginas ya visitadas se quedan 5 min en el navegador y vuelven al instante.
+    // Las Server Actions llaman a refresh(), que vacía esta caché: lo que cambias en la app no se queda viejo.
+    // Lo que cambie fuera (Claude por MCP, otro dispositivo) se recarga al volver a la app (RefreshOnReturn).
+    staleTimes: { dynamic: 300, static: 300 },
+  },
   turbopack: {
     rules: {
       "*.css": {

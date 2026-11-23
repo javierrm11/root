@@ -1,4 +1,5 @@
 import { MENU, MODULES } from "@/components/layout/nav-config";
+import { RefreshOnReturn } from "@/components/layout/refresh-on-return";
 import { BottomNav, SideNav } from "@/components/layout/tab-nav";
 import { QuickCapture } from "@/features/hoy/components";
 
@@ -20,6 +21,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       </main>
       <QuickCapture placement="fab" />
       <BottomNav items={MODULES} />
+      <RefreshOnReturn />
     </div>
   );
 }

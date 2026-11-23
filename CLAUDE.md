@@ -87,6 +87,8 @@ public/sw.js              service worker (solo fallback offline)
 
 **Cache Components.** Todo lo que lee cookies, `params`, `searchParams`, `usePathname()` o la hora actual va **dentro de `<Suspense>`**. El patrón de cada página es: cabecera estática + `<Suspense fallback={<Skeleton/>}><ContenidoAsync/></Suspense>`. Antes de leer la hora actual (`new Date()`, `Date.now()`) hay que llamar a `await io()` de `next/cache`. `requireUser()` ya lo hace, y si una fecha va fuera de una consulta, mira `TodayLabel`. Sin `io()`, la validación de navegación instantánea de `next dev` muestra el error "unstable value Date.now()", porque al hacer el prefetch las cookies están disponibles y no detienen el prerender. Ejecuta `npm run build` tras cambios en rutas: es lo que detecta estos errores.
 
+**Caché del navegador.** `experimental.staleTimes` (next.config.ts) guarda 5 min las páginas visitadas, así que volver a ellas es instantáneo. No hace falta invalidar nada a mano: `refresh()` (dentro de `mutate()`) vacía esa caché tras cada acción, y `RefreshOnReturn` (en `(app)/layout.tsx`) recarga los datos al volver a la app tras más de 1 min fuera, para ver lo que haya cambiado Claude por MCP. Las sesiones en directo (repaso, entreno, práctica) guardan con `refreshRoute: false` y por eso usan `useRefreshOnLeave` (lib): si se guardó algo, refrescan al salir.
+
 **Escrituras.** Server Actions en `features/*/actions.ts` con `"use server"`, siempre a través de `mutate()` (lib/actions.ts): autentica, devuelve `{ error }` al formulario y llama a `refresh()`.
 - Para validar usa `invalid("mensaje")`.
 - Para "crear o editar" usa `upsert(supabase, tabla, id | null, campos)`.

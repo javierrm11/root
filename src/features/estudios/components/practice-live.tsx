@@ -6,6 +6,7 @@ import { Icon } from "@/components/ui/icon";
 import { ProgressBar } from "@/components/ui/primitives";
 import { cn } from "@/lib/cn";
 import type { PracticeMode } from "@/lib/constants";
+import { useRefreshOnLeave } from "@/lib/use-refresh-on-leave";
 import { answerPracticeItem, finishPractice } from "../actions";
 import { PASS_RATIO, passed } from "../logic";
 
@@ -51,6 +52,7 @@ export function PracticeLive({
   const [summary, setSummary] = useState(finished || firstOpen === -1);
   const [shown, setShown] = useState<Record<string, { hint?: boolean; solution?: boolean }>>({});
   const [pending, startTransition] = useTransition();
+  const markChanged = useRefreshOnLeave();
 
   const item = items[index];
   const current = answerOf(item);
@@ -62,7 +64,8 @@ export function PracticeLive({
     setEdits((e) => ({ ...e, [item.id]: value }));
     startTransition(async () => {
       const result = await answerPracticeItem(item.id, value.chosen, value.correct);
-      if (result?.error) window.alert(result.error);
+      if (result?.error) return window.alert(result.error);
+      markChanged();
     });
   }
 
@@ -70,6 +73,7 @@ export function PracticeLive({
     startTransition(async () => {
       const result = await finishPractice(setId);
       if (result?.error) return window.alert(result.error);
+      markChanged();
       setSummary(true);
     });
   }

@@ -6,6 +6,7 @@ import { Icon } from "@/components/ui/icon";
 import { ProgressBar } from "@/components/ui/primitives";
 import { cn } from "@/lib/cn";
 import type { WorkoutSet } from "@/lib/types";
+import { useRefreshOnLeave } from "@/lib/use-refresh-on-leave";
 import { addSet, saveSet } from "../actions";
 
 type LiveSet = WorkoutSet & { prev: string };
@@ -22,6 +23,7 @@ export function WorkoutLive({ workoutId, exercises }: { workoutId: string; exerc
   // Solo guarda lo editado aquí; las series nuevas (al añadir una) se leen de las props.
   const [edits, setEdits] = useState<Record<string, SetState>>({});
   const [, startTransition] = useTransition();
+  const markChanged = useRefreshOnLeave();
   const current = (set: LiveSet): SetState =>
     edits[set.id] ?? { weight: set.weight_kg?.toString() ?? "", reps: set.reps?.toString() ?? "", done: set.done };
   const all = exercises.flatMap((e) => e.sets).map(current);
@@ -30,6 +32,7 @@ export function WorkoutLive({ workoutId, exercises }: { workoutId: string; exerc
   const persist = (id: string, next: SetState) =>
     startTransition(async () => {
       await saveSet(id, toNumber(next.weight), toNumber(next.reps), next.done);
+      markChanged();
     });
 
   const update = (set: LiveSet, patch: Partial<SetState>, save = false) => {
