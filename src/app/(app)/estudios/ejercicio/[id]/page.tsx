@@ -65,28 +65,26 @@ async function ExerciseTypeView({ params }: { params: Params }) {
         ))}
       </div>
 
-      <Columns>
-        <div>
-          <Section title="Cómo se resuelve" aside={type.guide_at && <span className="text-[13px] text-muted">{formatShortDay(type.guide_at.slice(0, 10))}</span>}>
-            {type.guide ? (
-              <Markdown>{type.guide}</Markdown>
-            ) : (
-              <EmptyState icon="lightbulb" title="Sin guía todavía">
-                Pídele a Claude un poco de teoría, los pasos para resolverlo y un ejemplo resuelto. La guardará aquí.
-              </EmptyState>
-            )}
-            <div className="mt-4 flex flex-wrap gap-2">
-              <CopyButton value={CLAUDE_PROMPTS.guide(ctx)} label={type.guide ? "Pedir otra a Claude" : "Pedir a Claude"} />
-              {gemini && <AiButton action={generateGuide.bind(null, type.id)}>{type.guide ? "Rehacer con Gemini" : "Generar con Gemini"}</AiButton>}
-            </div>
-          </Section>
+      <Section title="Cómo se resuelve" aside={type.guide_at && <span className="text-[13px] text-muted">{formatShortDay(type.guide_at.slice(0, 10))}</span>}>
+        {type.guide ? (
+          <Markdown>{type.guide}</Markdown>
+        ) : (
+          <EmptyState icon="lightbulb" title="Sin guía todavía">
+            Pídele a Claude un poco de teoría, los pasos para resolverlo y un ejemplo resuelto. La guardará aquí.
+          </EmptyState>
+        )}
+        <div className="mt-4 flex flex-wrap gap-2">
+          <CopyButton value={CLAUDE_PROMPTS.guide(ctx)} label={type.guide ? "Pedir otra a Claude" : "Pedir a Claude"} />
+          {gemini && <AiButton action={generateGuide.bind(null, type.id)}>{type.guide ? "Rehacer con Gemini" : "Generar con Gemini"}</AiButton>}
         </div>
+      </Section>
 
+      <Columns>
         <div>
           <Section title="Practicar">
             <div className="flex flex-col gap-3">
               {keysOf(PRACTICE_MODES).map((mode) => (
-                <div key={mode} className="flex flex-wrap items-center justify-between gap-2">
+                <div key={mode} className="flex flex-col gap-2">
                   <span>
                     <span className="block text-sm font-semibold">{PRACTICE_MODES[mode].label}</span>
                     <span className="block text-[13px] text-muted">{PRACTICE_MODES[mode].short}</span>
@@ -99,7 +97,9 @@ async function ExerciseTypeView({ params }: { params: Params }) {
               ))}
             </div>
           </Section>
+        </div>
 
+        <div>
           <Section title="Tandas">
             {sets.length ? (
               <RowList>
