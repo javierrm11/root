@@ -15,7 +15,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <div className="md:fixed md:inset-0 md:flex md:flex-row">
       <SideNav items={MODULES} secondary={MENU} footer={<QuickCapture placement="side" />} />
       <main className="md:min-h-0 md:flex-1 md:overflow-y-auto md:overscroll-contain">
-        <div className="mx-auto max-w-[480px] px-5 pt-[calc(env(safe-area-inset-top)+20px)] pb-[calc(var(--nav-inset)+150px)] md:max-w-2xl md:px-8 md:pt-[calc(env(safe-area-inset-top)+32px)] md:pb-16 lg:max-w-5xl">
+        <div className="mx-auto max-w-[480px] px-5 pt-[calc(env(safe-area-inset-top)+20px)] pb-[calc(var(--nav-inset)+150px)] md:max-w-2xl md:px-8 md:pt-[calc(env(safe-area-inset-top)+32px)] md:pb-16 lg:max-w-5xl xl:max-w-6xl 2xl:max-w-7xl">
           {children}
         </div>
       </main>

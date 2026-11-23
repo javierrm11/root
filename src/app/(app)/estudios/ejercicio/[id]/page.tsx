@@ -108,11 +108,8 @@ async function ExerciseTypeView({ params }: { params: Params }) {
                   return (
                     <Row
                       key={s.id}
-                      title={
-                        <Link href={`/estudios/practica/${s.id}`} className="font-semibold">
-                          {PRACTICE_MODES[s.mode].label} · {formatShortDay(s.created_at.slice(0, 10))}
-                        </Link>
-                      }
+                      href={`/estudios/practica/${s.id}`}
+                      title={`${PRACTICE_MODES[s.mode].label} · ${formatShortDay(s.created_at.slice(0, 10))}`}
                       subtitle={s.progress ? `Sin terminar · ${s.progress.done}/${s.progress.total} respondidos` : "Terminada"}
                       trailing={
                         <span className="flex items-center gap-1">

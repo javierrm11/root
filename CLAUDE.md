@@ -123,7 +123,8 @@ public/sw.js              service worker (solo fallback offline)
   - Marco de la app (`(app)/layout.tsx`): en el móvil la página hace scroll normal y `BottomNav` va `fixed` abajo, con `pb-[var(--nav-inset)]` (`max(safe-area-inset-bottom − 18px, 6px)`, en globals.css); desde `md` el marco es fijo y solo hace scroll el contenido. La barra de estado de iOS usa `statusBarStyle: "default"`, pintada con `theme-color` (el script del tema la pone al fondo de la paleta guardada). **No uses `black-translucent`**: con ese estilo, WebKit acorta la ventana de la PWA el alto de la barra de estado, no pinta nada por debajo y la barra inferior queda subida.
   - Desde `md` (tablet), la barra inferior se cambia por `SideNav`: un menú lateral con iconos que en `lg` (ordenador) se muestra completo. Incluye los módulos, los de apoyo y el botón de captura rápida.
   - Los módulos y el menú están definidos una sola vez, en `components/layout/nav-config.ts`.
-  - El contenido mide `max-w-[480px]` en móvil, `md:max-w-2xl` en tablet y `lg:max-w-5xl` en ordenador.
+  - El contenido mide `max-w-[480px]` en móvil, `md:max-w-2xl` en tablet y `lg:max-w-5xl` en ordenador (`xl:max-w-6xl` y `2xl:max-w-7xl` en pantallas grandes).
+  - `Row` con `href`: toda la fila es enlace y los botones de `trailing` siguen funcionando. Úsalo en vez de poner el `Link` solo en el título.
   - Las pantallas con varias secciones usan `<Columns>` (dos columnas desde `lg`; en el móvil se apilan en el mismo orden).
   - Las listas de tarjetas usan la clase `.list-grid` (dos columnas desde `lg`).
   - Los sheets se abren como ventana centrada desde `md`.

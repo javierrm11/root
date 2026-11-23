@@ -61,28 +61,42 @@ export function Columns({ children }: { children: ReactNode }) {
   return <div className="columns">{children}</div>;
 }
 
-/** Fila con título y subtítulo, la pieza básica de las listas. */
+/**
+ * Fila con título y subtítulo, la pieza básica de las listas.
+ * Con `href`, toda la fila es el enlace (los botones de `trailing` siguen funcionando por encima).
+ */
 export function Row({
   leading,
   title,
   subtitle,
   trailing,
+  href,
   className,
 }: {
   leading?: ReactNode;
   title: ReactNode;
   subtitle?: ReactNode;
   trailing?: ReactNode;
+  href?: string;
   className?: string;
 }) {
   return (
-    <div className={cn("flex min-h-13 w-full items-center gap-3 py-2 text-left", className)}>
+    <div className={cn("flex min-h-13 w-full items-center gap-3 py-2 text-left", href && "relative", className)}>
       {leading}
       <span className="min-w-0 flex-1">
-        <span className="block text-sm leading-snug font-semibold">{title}</span>
+        <span className="block text-sm leading-snug font-semibold">
+          {href ? (
+            <Link href={href} className="after:absolute after:inset-0">
+              {title}
+            </Link>
+          ) : (
+            title
+          )}
+        </span>
         {subtitle && <span className="mt-0.5 block text-[13px] leading-snug text-muted">{subtitle}</span>}
       </span>
-      {trailing}
+      {trailing && (href ? <span className="relative z-10 flex shrink-0 items-center">{trailing}</span> : trailing)}
+      {href && !trailing && <Icon name="chevron-right" size={16} className="shrink-0 text-muted" />}
     </div>
   );
 }

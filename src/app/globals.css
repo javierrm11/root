@@ -142,7 +142,7 @@
   .section-title { font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
 
   /* Markdown de guías, ejercicios y resúmenes (components/ui/markdown.tsx) */
-  .md { font-size: 16px; line-height: 1.75; max-width: 68ch; overflow-wrap: break-word; }
+  .md { font-size: 16px; line-height: 1.75; overflow-wrap: break-word; }
   .md > * + * { margin-top: 1em; }
   .md > :first-child { margin-top: 0; }
   /* Apartados (Teoría, Pasos, Ejemplo…): separados por una línea y bien visibles */

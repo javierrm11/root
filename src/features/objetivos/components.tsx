@@ -55,9 +55,9 @@ export function GoalFields({ goal, subjects, exercises, today }: { goal?: Goal; 
 export function GoalProgress({ goal }: { goal: GoalWithValue }) {
   const tone = GOAL_METRICS[goal.metric].tone;
   return (
-    <div className="flex flex-col gap-2 py-3">
+    <div className="relative flex flex-col gap-2 py-3">
       <div className="flex items-baseline justify-between gap-3">
-        <Link href="/objetivos" className="text-sm font-semibold">
+        <Link href="/objetivos" className="text-sm font-semibold after:absolute after:inset-0">
           {goal.title}
         </Link>
         <span className="shrink-0 font-mono text-[13px] text-muted">
