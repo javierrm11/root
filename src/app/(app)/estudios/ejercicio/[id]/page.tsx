@@ -6,22 +6,16 @@ import { CopyButton } from "@/components/ui/copy-button";
 import { Icon } from "@/components/ui/icon";
 import { Markdown } from "@/components/ui/markdown";
 import { Chip, Columns, EmptyState, Row, RowList, Section, Skeleton } from "@/components/ui/primitives";
-import { aiConfigured } from "@/lib/ai";
 import { cn } from "@/lib/cn";
 import { EXERCISE_STATUS, PRACTICE_MODES, keysOf } from "@/lib/constants";
 import { formatShortDay } from "@/lib/dates";
 import { deleteRow } from "@/features/common/actions";
 import { deleteExerciseType, setExerciseStatus } from "@/features/estudios/actions";
-import { generateGuide, generatePractice } from "@/features/estudios/ai";
-import { AiButton } from "@/features/estudios/components/ai-button";
 import { exerciseTypeMeta } from "@/features/estudios/components/exercise-types";
 import { CLAUDE_PROMPTS, passed } from "@/features/estudios/logic";
 import { getExerciseTypeView } from "@/features/estudios/queries";
-import { getSettings } from "@/features/ajustes/queries";
 
 export const metadata = { title: "Tipo de ejercicio" };
-// Generar la guía o una tanda con Gemini puede tardar.
-export const maxDuration = 300;
 
 type Params = Promise<{ id: string }>;
 
@@ -35,8 +29,7 @@ export default function ExerciseTypePage({ params }: { params: Params }) {
 
 async function ExerciseTypeView({ params }: { params: Params }) {
   const { id } = await params;
-  const [{ type, topic, sets, next }, settings] = await Promise.all([getExerciseTypeView(id), getSettings()]);
-  const gemini = aiConfigured() && settings.ai.practica;
+  const { type, topic, sets, next } = await getExerciseTypeView(id);
   const ctx = { subject: topic.subjectName, topic: topic.title, topicId: topic.id, typeId: type.id, typeName: type.name };
 
   return (
@@ -75,7 +68,6 @@ async function ExerciseTypeView({ params }: { params: Params }) {
         )}
         <div className="mt-4 flex flex-wrap gap-2">
           <CopyButton value={CLAUDE_PROMPTS.guide(ctx)} label={type.guide ? "Pedir otra a Claude" : "Pedir a Claude"} />
-          {gemini && <AiButton action={generateGuide.bind(null, type.id)}>{type.guide ? "Rehacer con Gemini" : "Generar con Gemini"}</AiButton>}
         </div>
       </Section>
 
@@ -91,7 +83,6 @@ async function ExerciseTypeView({ params }: { params: Params }) {
                   </span>
                   <span className="flex flex-wrap gap-2">
                     <CopyButton value={CLAUDE_PROMPTS.practice(ctx, mode)} label="Pedir a Claude" />
-                    {gemini && <AiButton action={generatePractice.bind(null, type.id, mode)}>Gemini</AiButton>}
                   </span>
                 </div>
               ))}

@@ -1,15 +1,13 @@
 "use server";
 
-import { redirect } from "next/navigation";
 import { createEmptyCard } from "ts-fsrs";
 import { z } from "zod";
 import { SYSTEM_BASE, fileParts, generateJson, generateText, type AiPart } from "@/lib/ai";
 import { invalid, mutate } from "@/lib/actions";
 import type { Db } from "@/lib/supabase/server";
-import { PRACTICE_MODES, keysOf, type FileKind, type PracticeMode } from "@/lib/constants";
+import type { FileKind } from "@/lib/constants";
 import type { StudyFile, TopicContent } from "@/lib/types";
-import { PRACTICE_SIZE } from "./logic";
-import { ExerciseTypeInput, PracticeItemInput, insertPractice, loadExerciseType, practiceHistory, upsertExerciseTypes } from "./practice";
+import { ExerciseTypeInput, upsertExerciseTypes } from "./practice";
 
 /** Material de un tema para Gemini: título, contenidos y sus PDF del tipo indicado (por defecto, teoría y otros). */
 async function topicMaterial(supabase: Db, topicId: string, kinds: FileKind[] = ["teoria", "otro"]) {
@@ -71,10 +69,8 @@ export async function generateTopicFlashcards(topicId: string) {
   });
 }
 
-// ─── Práctica por tipos de ejercicio (reserva de Claude) ────────────
+// ─── Tipos de ejercicio (reserva de Claude) ─────────────────────────
 const TypesSchema = z.object({ tipos: z.array(ExerciseTypeInput).min(1).max(12) });
-const PracticeSchema = z.object({ ejercicios: z.array(PracticeItemInput).min(3).max(8) });
-const MATH = "Usa Markdown y escribe las fórmulas en LaTeX ($…$ en línea, $$…$$ aparte).";
 
 /** Lee los boletines del tema y guarda los tipos de ejercicio que hay. */
 export async function detectExerciseTypes(topicId: string) {
@@ -88,52 +84,4 @@ export async function detectExerciseTypes(topicId: string) {
     );
     await upsertExerciseTypes(supabase, topicId, tipos);
   });
-}
-
-/** Guía de un tipo: teoría mínima, pasos y un ejemplo resuelto. */
-export async function generateGuide(typeId: string) {
-  return mutate(async ({ supabase }) => {
-    const loaded = await loadExerciseType(supabase, typeId);
-    if (!loaded) return invalid("Tipo de ejercicio no encontrado");
-    const { type, topic } = loaded;
-    const { parts } = await topicMaterial(supabase, topic.id, ["teoria", "boletin", "otro"]);
-    const guide = await generateText(
-      `${SYSTEM_BASE} Explica cómo resolver los ejercicios de tipo «${type.name}»${type.description ? ` (${type.description})` : ""}. ` +
-        `Estructura: "## Teoría" (solo lo necesario), "## Pasos" (lista numerada) y "## Ejemplo resuelto" (uno parecido a los del boletín, resuelto paso a paso). ${MATH} Sin introducciones.`,
-      parts,
-    );
-    if (!guide) return invalid("Gemini no ha devuelto nada, prueba otra vez");
-    return supabase.from("exercise_types").update({ guide, guide_at: new Date().toISOString() }).eq("id", typeId);
-  });
-}
-
-/** Tanda nueva de un tipo, centrada en lo fallado antes. Al acabar, abre la tanda. */
-export async function generatePractice(typeId: string, mode: PracticeMode) {
-  if (!keysOf(PRACTICE_MODES).includes(mode)) return { error: "Modalidad no válida" };
-  let setId = "";
-  const result = await mutate(async ({ supabase }) => {
-    const loaded = await loadExerciseType(supabase, typeId);
-    if (!loaded) return invalid("Tipo de ejercicio no encontrado");
-    const { type, topic } = loaded;
-    const history = await practiceHistory(supabase, typeId);
-    const failed = history.flatMap((h) => h.falladas.map((f) => f.enunciado)).slice(-8);
-    const context = [
-      `Asignatura: ${topic.subjectName}`,
-      `Tema: ${topic.title}`,
-      `Tipo de ejercicio: ${type.name}${type.description ? ` — ${type.description}` : ""}`,
-      type.guide ? `Guía que he estudiado:\n${type.guide}` : "",
-      failed.length ? `Ejercicios que he fallado antes (céntrate en eso, sin repetirlos):\n${failed.map((f) => `- ${f}`).join("\n")}` : "",
-    ]
-      .filter(Boolean)
-      .join("\n\n");
-    const { ejercicios } = await generateJson(
-      `${SYSTEM_BASE} Crea ${PRACTICE_SIZE} ejercicios ${mode === "test" ? "tipo test (4 opciones, una correcta; indica su índice desde 0 en «correcta»)" : "de desarrollo (con el resultado final en «resultado»)"} ` +
-        `de este tipo, de dificultad creciente y del nivel de un examen. Cada uno con una pista que no dé la solución y la solución paso a paso. ${MATH}`,
-      [{ text: context }],
-      PracticeSchema,
-    );
-    setId = await insertPractice(supabase, typeId, mode, ejercicios);
-  });
-  if (result?.error) return result;
-  redirect(`/estudios/practica/${setId}`);
 }

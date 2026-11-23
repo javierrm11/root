@@ -41,6 +41,6 @@ Claude lee tus PDF y boletines (`leer_archivo`) y te prepara la práctica dentro
 3. **Practicar → Test o Desarrollo → Pedir a Claude**: la tanda aparece en la app, con pista y solución ocultas.
 4. Con un 80 % de aciertos el tipo queda dominado y pasas al siguiente; si no, pide otra tanda centrada en lo fallado.
 
-Si activas «Práctica de ejercicios» en Ajustes, Gemini puede hacer lo mismo con un botón.
+Si activas «Tipos de ejercicio» en Ajustes, Gemini puede detectar los tipos de un tema con un botón; la guía y las tandas son de Claude.
 
 Las convenciones del código y el roadmap están en [CLAUDE.md](CLAUDE.md).

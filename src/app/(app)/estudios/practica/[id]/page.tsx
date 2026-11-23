@@ -4,18 +4,12 @@ import { ButtonLink } from "@/components/ui/button";
 import { CopyButton } from "@/components/ui/copy-button";
 import { Markdown } from "@/components/ui/markdown";
 import { Skeleton } from "@/components/ui/primitives";
-import { aiConfigured } from "@/lib/ai";
 import { PRACTICE_MODES } from "@/lib/constants";
-import { generatePractice } from "@/features/estudios/ai";
-import { AiButton } from "@/features/estudios/components/ai-button";
 import { PracticeLive, type LiveItem } from "@/features/estudios/components/practice-live";
 import { CLAUDE_PROMPTS } from "@/features/estudios/logic";
 import { getPracticeView } from "@/features/estudios/queries";
-import { getSettings } from "@/features/ajustes/queries";
 
 export const metadata = { title: "Práctica" };
-// "Otra tanda" con Gemini puede tardar.
-export const maxDuration = 300;
 
 type Params = Promise<{ id: string }>;
 
@@ -29,8 +23,7 @@ export default function PracticePage({ params }: { params: Params }) {
 
 async function Practice({ params }: { params: Params }) {
   const { id } = await params;
-  const [{ set, items, type, topic, next }, settings] = await Promise.all([getPracticeView(id), getSettings()]);
-  const gemini = aiConfigured() && settings.ai.practica;
+  const { set, items, type, topic, next } = await getPracticeView(id);
   const ctx = { subject: topic.subjectName, topic: topic.title, topicId: topic.id, typeId: type.id, typeName: type.name };
   const typeHref = `/estudios/ejercicio/${type.id}`;
 
@@ -50,7 +43,6 @@ async function Practice({ params }: { params: Params }) {
   const anotherSet = (
     <div className="flex flex-wrap gap-2">
       <CopyButton value={CLAUDE_PROMPTS.practice(ctx, set.mode)} label="Pedir otra tanda a Claude" variant="primary" />
-      {gemini && <AiButton action={generatePractice.bind(null, type.id, set.mode)}>Otra tanda con Gemini</AiButton>}
     </div>
   );
   const outcome = {

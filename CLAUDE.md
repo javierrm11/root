@@ -166,7 +166,7 @@ public/sw.js              service worker (solo fallback offline)
   - El botón de cada archivo lo vuelve a leer (`rereadStudyFile`). `leer_archivo` lo lee en ese momento si aún no estaba, y lo devuelve por trozos de unas 45 000 letras.
 - **Método de estudio** (el del usuario): boletín → **tipos de ejercicio** (`exercise_types`) → **guía** de cada tipo (teoría, pasos y ejemplo resuelto, en Markdown) → **tandas** (`practice_sets` + `practice_items`, test o desarrollo, con pista y solución opcionales).
   - Lo genera Claude por MCP: `guardar_tipos_ejercicio`, `guardar_guia`, `crear_practica` y `resultados_practica`. Los esquemas compartidos están en `features/estudios/practice.ts`.
-  - Gemini es la reserva, con botones si `settings.ai.practica` está activo (`detectExerciseTypes`, `generateGuide`, `generatePractice` en `ai.ts`).
+  - Gemini solo puede detectar los tipos de un tema (`detectExerciseTypes` en `ai.ts`, si `settings.ai.practica` está activo). Las guías y las tandas son solo de Claude: el usuario no quiere botones de Gemini en el tipo de ejercicio ni en la tanda.
   - La app tiene botones "Pedir a Claude" que copian el mensaje que hay que pegarle (`CLAUDE_PROMPTS` en logic.ts).
   - `PracticeLive` guarda cada respuesta al momento. Al terminar, con un 80 % o más (`PASS_RATIO`) el tipo pasa a dominado y se propone el siguiente (`nextExerciseType`). El tema sugiere su dominio según los tipos dominados (`suggestedMastery`).
 - **Markdown**: `components/ui/markdown.tsx` (react-markdown, GFM y KaTeX) con estilos `.md` en globals.css. Es un Server Component: en las pantallas de cliente se pasa ya pintado como `ReactNode`.

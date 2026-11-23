@@ -192,7 +192,7 @@ export const AI_FEATURES = catalog({
   resumen: { label: "Resumir temas", short: "Desde los PDF de cada tema" },
   flashcards: { label: "Crear flashcards", short: "Desde los PDF y contenidos de un tema" },
   revision: { label: "Revisión del domingo", short: "Resumen y plan de la semana" },
-  practica: { label: "Práctica de ejercicios", short: "Tipos, guías y tandas si no usas Claude" },
+  practica: { label: "Tipos de ejercicio", short: "Detectarlos en el boletín si no usas Claude" },
 });
 
 export const NOTIFICATIONS = catalog({
