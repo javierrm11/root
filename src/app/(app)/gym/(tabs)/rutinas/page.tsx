@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { cacheLife } from "next/cache";
 import { ActionButton } from "@/components/ui/action-button";
 import { FormSheet } from "@/components/ui/form-sheet";
 import { Icon } from "@/components/ui/icon";
@@ -20,6 +21,8 @@ export default function RutinasPage() {
 }
 
 async function Routines() {
+  "use cache: private";
+  cacheLife("pantalla");
   const { routines, exercises } = await getRoutines();
 
   return (

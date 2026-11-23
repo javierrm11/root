@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { cacheLife } from "next/cache";
 import { PageHeader } from "@/components/layout/page-header";
 import { ActionButton } from "@/components/ui/action-button";
 import { Icon } from "@/components/ui/icon";
@@ -22,6 +23,8 @@ export default function RevisionPage() {
 }
 
 async function Review() {
+  "use cache: private";
+  cacheLife("pantalla");
   const [{ start, end, stats, review }, settings] = await Promise.all([getWeekReview(), getSettings()]);
   const canGenerate = aiConfigured() && settings.ai.revision;
   const numbers = [

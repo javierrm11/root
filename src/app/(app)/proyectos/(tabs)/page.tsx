@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
+import { cacheLife } from "next/cache";
 import { CoverArt } from "@/components/ui/cover-art";
 import { FormSheet } from "@/components/ui/form-sheet";
 import { Chip, EmptyState, ProgressBar, Section, Skeleton, Stat, StatRow } from "@/components/ui/primitives";
@@ -22,6 +23,8 @@ export default function ProyectosPage() {
 }
 
 async function Projects() {
+  "use cache: private";
+  cacheLife("pantalla");
   const { userId, clients, active, delivered, stats } = await getProjectsOverview();
   const today = todayISO();
 
@@ -73,7 +76,7 @@ function ProjectList({ projects }: { projects: Array<ProjectSummary & { coverUrl
       {projects.map((p) => {
         const status = PROJECT_STATUS[p.status];
         return (
-          <Link key={p.id} href={`/proyectos/proyecto/${p.id}`} className="flex items-center gap-3.5 py-3.5">
+          <Link key={p.id} href={`/proyectos/proyecto/${p.id}`} prefetch className="flex items-center gap-3.5 py-3.5">
             <CoverArt item={p} url={p.coverUrl} />
             <span className="flex min-w-0 flex-1 flex-col gap-1">
               <span className="text-[15px] leading-snug font-semibold">{p.name}</span>

@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { cacheLife } from "next/cache";
 import { headers } from "next/headers";
 import { PageHeader } from "@/components/layout/page-header";
 import { ThemePicker } from "@/components/layout/theme-picker";
@@ -37,6 +38,8 @@ export default function AjustesPage() {
 }
 
 async function Preferences() {
+  "use cache: private";
+  cacheLife("pantalla");
   const settings = await getSettings();
   const h = await headers();
   const origin = `${h.get("x-forwarded-proto") ?? "https"}://${h.get("host")}`;

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
+import { cacheLife } from "next/cache";
 import { FormSheet } from "@/components/ui/form-sheet";
 import { Chip, EmptyState, Row, Section, Skeleton } from "@/components/ui/primitives";
 import { createFlashcard } from "@/features/estudios/actions";
@@ -18,6 +19,8 @@ export default function FlashcardsPage() {
 }
 
 async function Decks() {
+  "use cache: private";
+  cacheLife("pantalla");
   const { subjects, decks } = await getDecks();
   if (!subjects.length) {
     return (

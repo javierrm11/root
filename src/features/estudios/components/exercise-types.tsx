@@ -37,7 +37,7 @@ export function ExerciseTypes({
       {types.length > 0 ? (
         <div className="divide-y divide-line rounded-xl border border-line">
           {types.map((t) => (
-            <Link key={t.id} href={`/estudios/ejercicio/${t.id}`} className="flex min-h-13 items-center gap-3 px-3 py-2">
+            <Link key={t.id} href={`/estudios/ejercicio/${t.id}`} prefetch className="flex min-h-13 items-center gap-3 px-3 py-2">
               <span className="min-w-0 flex-1">
                 <span className="block text-sm font-semibold">{t.name}</span>
                 {exerciseTypeMeta(t) && <span className="block truncate text-[13px] text-muted">{exerciseTypeMeta(t)}</span>}

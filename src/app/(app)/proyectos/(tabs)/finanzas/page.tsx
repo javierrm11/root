@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { cacheLife } from "next/cache";
 import { ActionButton } from "@/components/ui/action-button";
 import { FormSheet } from "@/components/ui/form-sheet";
 import { Icon } from "@/components/ui/icon";
@@ -26,6 +27,12 @@ export default function FinanzasPage({ searchParams }: { searchParams: SearchPar
 
 async function Finances({ searchParams }: { searchParams: SearchParams }) {
   const { periodo } = await searchParams;
+  return <FinancesView periodo={periodo} />;
+}
+
+async function FinancesView({ periodo }: { periodo?: string }) {
+  "use cache: private";
+  cacheLife("pantalla");
   const period: Period = periodo && periodo in PERIODS ? (periodo as Period) : "mes";
   const f = await getFinances(period);
   const today = todayISO();

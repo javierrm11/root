@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { cacheLife } from "next/cache";
 import { PageHeader } from "@/components/layout/page-header";
 import { ActionButton } from "@/components/ui/action-button";
 import { InlineAdd } from "@/components/ui/inline-add";
@@ -21,6 +22,12 @@ export default function WorkoutPage({ params }: { params: Params }) {
 
 async function Workout({ params }: { params: Params }) {
   const { id } = await params;
+  return <WorkoutView id={id} />;
+}
+
+async function WorkoutView({ id }: { id: string }) {
+  "use cache: private";
+  cacheLife("pantalla");
   const { workout, routineName, exercises } = await getWorkout(id);
   const finished = Boolean(workout.finished_at);
 

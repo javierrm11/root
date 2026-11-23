@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
+import { cacheLife } from "next/cache";
 import { PageHeader } from "@/components/layout/page-header";
 import { ActionButton } from "@/components/ui/action-button";
 import { CopyButton } from "@/components/ui/copy-button";
@@ -29,6 +30,12 @@ export default function ExerciseTypePage({ params }: { params: Params }) {
 
 async function ExerciseTypeView({ params }: { params: Params }) {
   const { id } = await params;
+  return <ExerciseTypeViewView id={id} />;
+}
+
+async function ExerciseTypeViewView({ id }: { id: string }) {
+  "use cache: private";
+  cacheLife("pantalla");
   const { type, topic, sets, next } = await getExerciseTypeView(id);
   const ctx = { subject: topic.subjectName, topic: topic.title, topicId: topic.id, typeId: type.id, typeName: type.name };
 
@@ -126,7 +133,7 @@ async function ExerciseTypeView({ params }: { params: Params }) {
 
           {next && (
             <Section title="Siguiente tipo">
-              <Link href={`/estudios/ejercicio/${next.id}`} className="flex min-h-12 items-center justify-between gap-3">
+              <Link href={`/estudios/ejercicio/${next.id}`} prefetch className="flex min-h-12 items-center justify-between gap-3">
                 <span className="text-sm font-semibold">{next.name}</span>
                 <Icon name="chevron-right" size={18} className="text-muted" />
               </Link>

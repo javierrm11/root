@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
+import { cacheLife } from "next/cache";
 import { ActionButton } from "@/components/ui/action-button";
 import { CoverArt } from "@/components/ui/cover-art";
 import { FormSheet } from "@/components/ui/form-sheet";
@@ -32,6 +33,12 @@ export default function ProjectPage({ params }: { params: Params }) {
 
 async function Project({ params }: { params: Params }) {
   const { id } = await params;
+  return <ProjectView id={id} />;
+}
+
+async function ProjectView({ id }: { id: string }) {
+  "use cache: private";
+  cacheLife("pantalla");
   const { userId, today, clients, project, coverUrl, features, entries, invoices, activeProjects } = await getProjectDetail(id);
   const status = PROJECT_STATUS[project.status];
   const dates = [project.start_date, project.end_date].filter((d): d is string => Boolean(d)).map(formatDay).join(" → ");

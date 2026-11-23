@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
+import { cacheLife } from "next/cache";
 import { ActionButton } from "@/components/ui/action-button";
 import { FormSheet } from "@/components/ui/form-sheet";
 import { Icon } from "@/components/ui/icon";
@@ -29,6 +30,12 @@ export default function VideoPage({ params }: { params: Params }) {
 
 async function Video({ params }: { params: Params }) {
   const { id } = await params;
+  return <VideoView id={id} />;
+}
+
+async function VideoView({ id }: { id: string }) {
+  "use cache: private";
+  cacheLife("pantalla");
   const video = await getVideo(id);
   const next = nextStage(video.stage);
   const script = [

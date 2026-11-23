@@ -1,8 +1,11 @@
+import { cacheLife } from "next/cache";
 import Link from "next/link";
 import { getContentToday } from "../queries";
 
 /** Aviso en la cabecera de Contenido: lo que toca hoy. */
 export async function ContentTodayChip() {
+  "use cache: private";
+  cacheLife("pantalla");
   const { today } = await getContentToday();
   const first = today[0];
   if (!first) return null;

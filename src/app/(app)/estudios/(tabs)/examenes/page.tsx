@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { cacheLife } from "next/cache";
 import { Columns, EmptyState, Section, Skeleton } from "@/components/ui/primitives";
 import { startAdvice } from "@/features/estudios/logic";
 import { AddExamSheet, ExamCalendar, ExamRow } from "@/features/estudios/components/exams";
@@ -18,6 +19,12 @@ export default function ExamenesPage({ searchParams }: { searchParams: SearchPar
 
 async function Exams({ searchParams }: { searchParams: SearchParams }) {
   const { mes } = await searchParams;
+  return <ExamsView mes={mes} />;
+}
+
+async function ExamsView({ mes }: { mes?: string }) {
+  "use cache: private";
+  cacheLife("pantalla");
   const { today, month, examDays, studyDays, subjects, upcoming } = await getExamsView(mes);
 
   return (

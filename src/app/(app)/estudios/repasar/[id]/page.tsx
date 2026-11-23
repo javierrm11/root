@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { cacheLife } from "next/cache";
 import { PageHeader } from "@/components/layout/page-header";
 import { Skeleton } from "@/components/ui/primitives";
 import { Review } from "@/features/estudios/components/review";
@@ -18,6 +19,12 @@ export default function RepasarPage({ params }: { params: Params }) {
 
 async function Session({ params }: { params: Params }) {
   const { id } = await params;
+  return <SessionView id={id} />;
+}
+
+async function SessionView({ id }: { id: string }) {
+  "use cache: private";
+  cacheLife("pantalla");
   const { subject, cards } = await getDueCards(id);
   return (
     <>

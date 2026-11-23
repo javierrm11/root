@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { cacheLife } from "next/cache";
 import { ActionButton } from "@/components/ui/action-button";
 import { FormSheet } from "@/components/ui/form-sheet";
 import { Icon } from "@/components/ui/icon";
@@ -25,6 +26,8 @@ export default function CuerpoPage() {
 }
 
 async function Body() {
+  "use cache: private";
+  cacheLife("pantalla");
   const { userId, weights, weight, weightChange, measures, photos } = await getBody();
   const today = todayISO();
 

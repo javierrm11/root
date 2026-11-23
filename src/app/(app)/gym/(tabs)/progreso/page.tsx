@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { cacheLife } from "next/cache";
 import { BarChart } from "@/components/ui/bar-chart";
 import { Chip, EmptyState, LinkPills, Row, RowList, Section, Skeleton, Stat, StatRow } from "@/components/ui/primitives";
 import { formatKg, formatSet } from "@/features/gym/logic";
@@ -18,6 +19,12 @@ export default function ProgresoPage({ searchParams }: { searchParams: SearchPar
 
 async function Progress({ searchParams }: { searchParams: SearchParams }) {
   const { ej } = await searchParams;
+  return <ProgressView ej={ej} />;
+}
+
+async function ProgressView({ ej }: { ej?: string }) {
+  "use cache: private";
+  cacheLife("pantalla");
   const { exercises, selected, bars, record, estimated, gain, records } = await getProgress(ej);
 
   if (!selected) {

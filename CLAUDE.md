@@ -87,7 +87,17 @@ public/sw.js              service worker (solo fallback offline)
 
 **Cache Components.** Todo lo que lee cookies, `params`, `searchParams`, `usePathname()` o la hora actual va **dentro de `<Suspense>`**. El patrón de cada página es: cabecera estática + `<Suspense fallback={<Skeleton/>}><ContenidoAsync/></Suspense>`. Antes de leer la hora actual (`new Date()`, `Date.now()`) hay que llamar a `await io()` de `next/cache`. `requireUser()` ya lo hace, y si una fecha va fuera de una consulta, mira `TodayLabel`. Sin `io()`, la validación de navegación instantánea de `next dev` muestra el error "unstable value Date.now()", porque al hacer el prefetch las cookies están disponibles y no detienen el prerender. Ejecuta `npm run build` tras cambios en rutas: es lo que detecta estos errores.
 
-**Caché del navegador.** `experimental.staleTimes` (next.config.ts) guarda 5 min las páginas visitadas, así que volver a ellas es instantáneo. No hace falta invalidar nada a mano: `refresh()` (dentro de `mutate()`) vacía esa caché tras cada acción, y `RefreshOnReturn` (en `(app)/layout.tsx`) recarga los datos al volver a la app tras más de 1 min fuera, para ver lo que haya cambiado Claude por MCP. Las sesiones en directo (repaso, entreno, práctica) guardan con `refreshRoute: false` y por eso usan `useRefreshOnLeave` (lib): si se guardó algo, refrescan al salir.
+**Carga instantánea (precarga con datos).** Cada pantalla tiene su componente async de contenido con
+`"use cache: private"` + `cacheLife("pantalla")` (perfil de next.config.ts: 5 min en el navegador). Con `stale` ≥ 5 min,
+los datos entran en el App Shell que precargan los enlaces visibles (barra inferior, menú, pestañas), así que al pulsar
+la pantalla sale ya con datos.
+- **Pantallas nuevas: sigue el mismo patrón.** Si usa `params` o `searchParams`, léelos en un componente de fuera y pasa los valores (strings) a un `…View` cacheado (mira `SubjectView` o `CalendarView`). Haz lo mismo con los chips async de las cabeceras.
+- Los enlaces a fichas concretas (asignatura, proyecto, tipo de ejercicio, vídeo, y `Row` con `href`) llevan `prefetch` para precargar también sus datos.
+- No hay que invalidar nada a mano: `refresh()` (dentro de `mutate()`) vacía la caché del navegador tras cada acción.
+- `RefreshOnReturn` (en `(app)/layout.tsx`) recarga al volver a la app tras más de 1 min fuera, para ver lo que haya cambiado Claude por MCP.
+- Las sesiones en directo (repaso, entreno, práctica) guardan con `refreshRoute: false` y usan `useRefreshOnLeave` (lib): si se guardó algo, refrescan al salir.
+- `experimental.staleTimes` mantiene además 5 min las páginas ya visitadas.
+- Las consultas de `features/*/queries.ts` **no** llevan la caché: las reutilizan el MCP y el cron.
 
 **Escrituras.** Server Actions en `features/*/actions.ts` con `"use server"`, siempre a través de `mutate()` (lib/actions.ts): autentica, devuelve `{ error }` al formulario y llama a `refresh()`.
 - Para validar usa `invalid("mensaje")`.

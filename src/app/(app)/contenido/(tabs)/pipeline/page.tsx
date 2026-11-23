@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
+import { cacheLife } from "next/cache";
 import { FormSheet } from "@/components/ui/form-sheet";
 import { Chip, LinkPills, Row, RowList, Skeleton } from "@/components/ui/primitives";
 import { VIDEO_FORMATS, VIDEO_STAGES, type VideoStage } from "@/lib/constants";
@@ -23,6 +24,12 @@ export default function PipelinePage({ searchParams }: { searchParams: SearchPar
 
 async function Pipeline({ searchParams }: { searchParams: SearchParams }) {
   const { fase } = await searchParams;
+  return <PipelineView fase={fase} />;
+}
+
+async function PipelineView({ fase }: { fase?: string }) {
+  "use cache: private";
+  cacheLife("pantalla");
   const videos = await getPipeline();
   const count = (stage: VideoStage) => videos.filter((v) => v.stage === stage).length;
   // Por defecto, la primera fase con trabajo pendiente.
@@ -39,7 +46,7 @@ async function Pipeline({ searchParams }: { searchParams: SearchParams }) {
           {list.map((video) => {
             const task = nextTask(video);
             return (
-              <Link key={video.id} href={`/contenido/video/${video.id}`} className="block">
+              <Link key={video.id} href={`/contenido/video/${video.id}`} prefetch className="block">
                 <Row
                   title={video.title}
                   subtitle={[VIDEO_FORMATS[video.format].label, video.series].filter(Boolean).join(" · ")}

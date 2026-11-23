@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { cacheLife } from "next/cache";
 import { PageHeader } from "@/components/layout/page-header";
 import { ButtonLink } from "@/components/ui/button";
 import { CopyButton } from "@/components/ui/copy-button";
@@ -23,6 +24,12 @@ export default function PracticePage({ params }: { params: Params }) {
 
 async function Practice({ params }: { params: Params }) {
   const { id } = await params;
+  return <PracticeView id={id} />;
+}
+
+async function PracticeView({ id }: { id: string }) {
+  "use cache: private";
+  cacheLife("pantalla");
   const { set, items, type, topic, next } = await getPracticeView(id);
   const ctx = { subject: topic.subjectName, topic: topic.title, topicId: topic.id, typeId: type.id, typeName: type.name };
   const typeHref = `/estudios/ejercicio/${type.id}`;

@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { cacheLife } from "next/cache";
 import { PageHeader } from "@/components/layout/page-header";
 import { ActionButton } from "@/components/ui/action-button";
 import { FormSheet } from "@/components/ui/form-sheet";
@@ -25,6 +26,8 @@ export default function ObjetivosPage() {
 }
 
 async function Goals() {
+  "use cache: private";
+  cacheLife("pantalla");
   const { today, goals, subjects, exercises, average } = await getGoals();
   const nextDeadline = goals.filter((g) => g.daysLeft >= 0).sort((a, b) => a.daysLeft - b.daysLeft)[0];
 

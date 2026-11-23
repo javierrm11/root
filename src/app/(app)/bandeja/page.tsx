@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { cacheLife } from "next/cache";
 import { PageHeader } from "@/components/layout/page-header";
 import { ActionButton } from "@/components/ui/action-button";
 import { Icon } from "@/components/ui/icon";
@@ -25,6 +26,8 @@ export default function BandejaPage() {
 }
 
 async function Inbox() {
+  "use cache: private";
+  cacheLife("pantalla");
   const items = await getInbox();
   if (!items.length) {
     return (

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
+import { cacheLife } from "next/cache";
 import { ActionButton } from "@/components/ui/action-button";
 import { FormSheet } from "@/components/ui/form-sheet";
 import { Chip, EmptyState, Skeleton } from "@/components/ui/primitives";
@@ -20,6 +21,8 @@ export default function ContentIdeasPage() {
 }
 
 async function Ideas() {
+  "use cache: private";
+  cacheLife("pantalla");
   const ideas = await getContentIdeas();
 
   return (

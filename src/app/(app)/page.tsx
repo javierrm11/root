@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
+import { cacheLife } from "next/cache";
 import { MenuSheet } from "@/components/layout/menu-sheet";
 import { PageHeader } from "@/components/layout/page-header";
 import { TodayLabel } from "@/components/layout/today-label";
@@ -26,6 +27,8 @@ export default function HoyPage() {
 }
 
 async function Today() {
+  "use cache: private";
+  cacheLife("pantalla");
   const { today, now, agenda, habits, streak, inboxCount, nextExam, priority, freelance, content, gym, goals } = await getToday();
   const habitsDone = habits.filter((h) => h.done).length;
 

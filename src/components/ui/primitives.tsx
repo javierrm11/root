@@ -86,7 +86,7 @@ export function Row({
       <span className="min-w-0 flex-1">
         <span className="block text-sm leading-snug font-semibold">
           {href ? (
-            <Link href={href} className="after:absolute after:inset-0">
+            <Link href={href} prefetch className="after:absolute after:inset-0">
               {title}
             </Link>
           ) : (

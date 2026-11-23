@@ -1,3 +1,4 @@
+import { cacheLife } from "next/cache";
 import Link from "next/link";
 import { Icon } from "@/components/ui/icon";
 import { EXAM_KINDS } from "@/lib/constants";
@@ -6,6 +7,8 @@ import { getNextExam } from "../queries";
 
 /** Aviso del próximo examen en la cabecera de Estudios. */
 export async function NextExamChip() {
+  "use cache: private";
+  cacheLife("pantalla");
   const exam = await getNextExam();
   if (!exam) return null;
   return (

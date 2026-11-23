@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
+import { cacheLife } from "next/cache";
 import { ActionButton } from "@/components/ui/action-button";
 import { ButtonLink } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
@@ -21,6 +22,8 @@ export default function EntrenoPage() {
 }
 
 async function Today() {
+  "use cache: private";
+  cacheLife("pantalla");
   const { today, routinesToday, active, week, weekDone, weekPlanned, records, routines } = await getGymToday();
 
   return (

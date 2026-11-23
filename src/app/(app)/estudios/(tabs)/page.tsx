@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
+import { cacheLife } from "next/cache";
 import { FormSheet } from "@/components/ui/form-sheet";
 import { Chip, EmptyState, ProgressBar, Skeleton } from "@/components/ui/primitives";
 import { countdown } from "@/lib/dates";
@@ -19,6 +20,8 @@ export default function AsignaturasPage() {
 }
 
 async function Subjects() {
+  "use cache: private";
+  cacheLife("pantalla");
   const { userId, subjects } = await getSubjectsOverview();
 
   return (
@@ -31,7 +34,7 @@ async function Subjects() {
 
       <div className="list-grid">
         {subjects.map((s) => (
-          <Link key={s.id} href={`/estudios/asignatura/${s.id}`} className="flex items-center gap-3.5 py-3.5">
+          <Link key={s.id} href={`/estudios/asignatura/${s.id}`} prefetch className="flex items-center gap-3.5 py-3.5">
             <CoverArt item={s} url={s.coverUrl} />
             <span className="flex min-w-0 flex-1 flex-col gap-1">
               <span className="text-[15px] leading-snug font-semibold">{s.name}</span>

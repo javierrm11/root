@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { cacheLife } from "next/cache";
 import { ActionButton } from "@/components/ui/action-button";
 import { FormSheet } from "@/components/ui/form-sheet";
 import { Chip, EmptyState, Section, Skeleton, Stat, StatRow, TimelineItem } from "@/components/ui/primitives";
@@ -26,6 +27,8 @@ const certificateUpload = (userId: string): UploadConfig => ({
 });
 
 async function History() {
+  "use cache: private";
+  cacheLife("pantalla");
   const { userId, degrees, courses } = await getEducation();
   const ongoing = [...degrees, ...courses].filter((d) => !d.end_year).length;
 
