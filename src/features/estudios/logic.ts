@@ -1,5 +1,5 @@
 // Reglas de estudio, puras y sin dependencias de servidor.
-import type { FileStatus, Tone } from "@/lib/constants";
+import type { ExerciseStatus, FileStatus, PracticeMode, Tone } from "@/lib/constants";
 import { addDays, daysBetween, formatDay } from "@/lib/dates";
 
 export const MAX_MASTERY = 5;
@@ -48,9 +48,47 @@ export function priorityScore(mastery: number, daysToExam: number) {
   return (MAX_MASTERY - mastery) / Math.max(1, daysToExam);
 }
 
+/** Archivos de los que se puede sacar texto para Claude: PDF e imágenes. */
+export const isReadable = (mime: string | null) => mime === "application/pdf" || Boolean(mime?.startsWith("image/"));
+
 /** Siguiente estado de un boletín al tocar su etiqueta. */
 export const NEXT_FILE_STATUS: Record<FileStatus, FileStatus> = {
   pendiente: "en_curso",
   en_curso: "hecho",
   hecho: "pendiente",
+};
+
+// ─── Práctica por tipos de ejercicio ────────────────────────────────
+
+/** Aciertos necesarios en una tanda para dar un tipo de ejercicio por dominado. */
+export const PASS_RATIO = 0.8;
+/** Ejercicios por tanda que se piden a Claude o a Gemini. */
+export const PRACTICE_SIZE = 5;
+
+export const passed = (correct: number, total: number) => total > 0 && correct / total >= PASS_RATIO;
+
+/** Dominio del tema (0–5) que sugieren sus tipos de ejercicio dominados. */
+export function suggestedMastery(statuses: ExerciseStatus[]) {
+  if (!statuses.length) return null;
+  return Math.round((statuses.filter((s) => s === "dominado").length / statuses.length) * MAX_MASTERY);
+}
+
+/** Siguiente tipo por practicar del tema (en orden), sin contar el actual. */
+export function nextExerciseType<T extends { id: string; status: ExerciseStatus }>(types: T[], currentId: string) {
+  const index = types.findIndex((t) => t.id === currentId);
+  const ordered = [...types.slice(index + 1), ...types.slice(0, Math.max(0, index))];
+  return ordered.find((t) => t.status !== "dominado") ?? null;
+}
+
+// Textos para copiar y pegar en Claude: le dicen qué herramientas del MCP de root usar.
+type PromptCtx = { subject: string; topic: string; topicId: string };
+type TypeCtx = PromptCtx & { typeId: string; typeName: string };
+
+export const CLAUDE_PROMPTS = {
+  types: (c: PromptCtx) =>
+    `Con root: lee los boletines del tema «${c.topic}» de ${c.subject} (topic_id ${c.topicId}) con leer_archivo y dime cuántos tipos de ejercicio hay y cuáles (con los números de ejercicio de cada uno). Después guárdalos con guardar_tipos_ejercicio.`,
+  guide: (c: TypeCtx) =>
+    `Con root: explícame cómo resolver los ejercicios de tipo «${c.typeName}» del tema «${c.topic}» de ${c.subject} (exercise_type_id ${c.typeId}). Lee la teoría y el boletín con leer_archivo. Quiero un poco de teoría, los pasos para resolverlo y un ejemplo resuelto. Guárdalo con guardar_guia.`,
+  practice: (c: TypeCtx, mode: PracticeMode) =>
+    `Con root: hazme una tanda de ${PRACTICE_SIZE} ejercicios ${mode === "test" ? "tipo test" : "de desarrollo"} del tipo «${c.typeName}» del tema «${c.topic}» de ${c.subject} (exercise_type_id ${c.typeId}), con pista y solución paso a paso. Mira antes resultados_practica para centrarte en lo que he fallado y guárdala con crear_practica.`,
 };

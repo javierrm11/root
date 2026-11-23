@@ -21,6 +21,8 @@ import type {
   GoalMetric,
   AiFeature,
   NotificationKind,
+  ExerciseStatus,
+  PracticeMode,
 } from "./constants";
 
 type Owned = { id: string; user_id: string; created_at: string };
@@ -68,6 +70,10 @@ export type StudyFile = Owned & {
   size_bytes: number | null;
   mime_type: string | null;
   status: FileStatus | null;
+  /** Texto del archivo para Claude (Markdown con marcas "--- Página N ---"). */
+  content_md: string | null;
+  content_source: "pdf" | "gemini" | null;
+  content_at: string | null;
 };
 
 export type Exam = Owned & {
@@ -264,4 +270,39 @@ export type WeeklyReview = Owned & {
   good: string[];
   improve: string[];
   plan: PlanItem[];
+};
+
+// ─── Fase 6 · Práctica por tipos de ejercicio ───────────────────────
+export type ExerciseType = Owned & {
+  topic_id: string;
+  name: string;
+  description: string | null;
+  count: number | null;
+  examples: string | null;
+  guide: string | null;
+  guide_at: string | null;
+  status: ExerciseStatus;
+  position: number;
+};
+
+export type PracticeSet = Owned & {
+  exercise_type_id: string;
+  mode: PracticeMode;
+  correct: number | null;
+  total: number | null;
+  finished_at: string | null;
+};
+
+export type PracticeItem = Owned & {
+  set_id: string;
+  position: number;
+  question: string;
+  options: string[] | null;
+  correct_option: number | null;
+  answer: string | null;
+  hint: string | null;
+  solution: string;
+  chosen_option: number | null;
+  correct: boolean | null;
+  answered_at: string | null;
 };

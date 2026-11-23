@@ -1,13 +1,27 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { after } from "next/server";
 import { createEmptyCard, fsrs, type CardInput, type Grade } from "ts-fsrs";
 import { invalid, mutate, upsert } from "@/lib/actions";
-import { EDUCATION_KINDS, EDUCATION_LEVELS, EXAM_KINDS, FILE_KINDS, keysOf, type FileStatus } from "@/lib/constants";
+import {
+  EDUCATION_KINDS,
+  EDUCATION_LEVELS,
+  EXAM_KINDS,
+  EXERCISE_STATUS,
+  FILE_KINDS,
+  PRACTICE_MODES,
+  keysOf,
+  type ExerciseStatus,
+  type FileStatus,
+  type PracticeMode,
+} from "@/lib/constants";
 import { coverFields, oneOf, optInt, optNumber, optText, text, uploadedFile } from "@/lib/form";
 import { removePaths, removeRowFile } from "@/lib/storage";
 import type { Db } from "@/lib/supabase/server";
-import { NEXT_FILE_STATUS } from "./logic";
+import { readFileText } from "./file-text";
+import { NEXT_FILE_STATUS, isReadable, passed } from "./logic";
+import { insertPractice, upsertExerciseTypes, type ExerciseTypeInput, type PracticeItemInput } from "./practice";
 
 const scheduler = fsrs();
 
@@ -89,20 +103,35 @@ export async function addContent(topicId: string, fd: FormData) {
 
 // ─── Archivos (PDF de teoría, boletines, generales) ─────────────────
 export async function addStudyFile(subjectId: string, topicId: string | null, fd: FormData) {
-  return mutate(({ supabase, userId }) => {
+  return mutate(async ({ supabase, userId }) => {
     const file = uploadedFile(fd, userId);
     if (!file) return invalid("Elige un archivo");
     const kind = topicId ? oneOf(fd, "kind", keysOf(FILE_KINDS), "teoria") : "general";
-    return supabase.from("study_files").insert({
-      subject_id: subjectId,
-      topic_id: topicId,
-      kind,
-      name: text(fd, "name") || file.name,
-      storage_path: file.path,
-      size_bytes: file.size,
-      mime_type: file.mime,
-      status: kind === "boletin" ? "pendiente" : null,
-    });
+    const { data: row, error } = await supabase
+      .from("study_files")
+      .insert({
+        subject_id: subjectId,
+        topic_id: topicId,
+        kind,
+        name: text(fd, "name") || file.name,
+        storage_path: file.path,
+        size_bytes: file.size,
+        mime_type: file.mime,
+        status: kind === "boletin" ? "pendiente" : null,
+      })
+      .select("id, storage_path, mime_type")
+      .single();
+    if (error) return { error };
+    // El texto para Claude se saca después de responder, para no hacer esperar a la subida.
+    if (isReadable(row.mime_type)) after(() => readFileText(supabase, row).then(() => undefined, console.error));
+  });
+}
+
+/** Vuelve a sacar el texto de un archivo (si la lectura salió mal o el archivo es de antes). */
+export async function rereadStudyFile(id: string) {
+  return mutate(async ({ supabase }) => {
+    const { data: file } = await supabase.from("study_files").select("id, storage_path, mime_type").eq("id", id).single();
+    if (!file || !(await readFileText(supabase, file))) return invalid("No se ha podido leer el archivo");
   });
 }
 
@@ -115,6 +144,95 @@ export async function deleteStudyFile(id: string) {
     await removeRowFile(supabase, "study_files", id, "storage_path");
     return supabase.from("study_files").delete().eq("id", id);
   });
+}
+
+// ─── Práctica por tipos de ejercicio ────────────────────────────────
+/** Guarda los tipos de ejercicio de un tema (los que detecta Claude o Gemini). Devuelve sus ids. */
+export async function saveExerciseTypes(topicId: string, tipos: ExerciseTypeInput[]) {
+  let saved: Awaited<ReturnType<typeof upsertExerciseTypes>> = [];
+  const result = await mutate(async ({ supabase }) => {
+    saved = await upsertExerciseTypes(supabase, topicId, tipos);
+  });
+  return result ?? { tipos: saved };
+}
+
+/** Añadir un tipo a mano, desde el tema. */
+export async function addExerciseType(topicId: string, fd: FormData) {
+  const nombre = text(fd, "name");
+  if (!nombre) return { error: "Escribe el tipo de ejercicio" };
+  const result = await saveExerciseTypes(topicId, [{ nombre }]);
+  return "error" in result ? result : undefined;
+}
+
+export async function saveGuide(typeId: string, guide: string) {
+  return mutate(({ supabase }) => {
+    if (!guide.trim()) return invalid("La guía está vacía");
+    return supabase.from("exercise_types").update({ guide, guide_at: new Date().toISOString() }).eq("id", typeId);
+  });
+}
+
+export async function setExerciseStatus(typeId: string, status: ExerciseStatus) {
+  if (!keysOf(EXERCISE_STATUS).includes(status)) return { error: "Estado no válido" };
+  return mutate(({ supabase }) => supabase.from("exercise_types").update({ status }).eq("id", typeId));
+}
+
+/** Borra el tipo (con sus tandas) y vuelve a la asignatura. */
+export async function deleteExerciseType(typeId: string) {
+  let subjectId = "";
+  const result = await mutate(async ({ supabase }) => {
+    const { data } = await supabase.from("exercise_types").select("topics(subject_id)").eq("id", typeId).single();
+    subjectId = (data?.topics as unknown as { subject_id: string } | null)?.subject_id ?? "";
+    return supabase.from("exercise_types").delete().eq("id", typeId);
+  });
+  if (result?.error) return result;
+  redirect(subjectId ? `/estudios/asignatura/${subjectId}` : "/estudios");
+}
+
+/** Crea una tanda de práctica (la usa Claude por MCP). Devuelve su id. */
+export async function createPractice(typeId: string, mode: PracticeMode, items: PracticeItemInput[]) {
+  if (!keysOf(PRACTICE_MODES).includes(mode)) return { error: "Modalidad no válida" };
+  let id = "";
+  const result = await mutate(async ({ supabase }) => {
+    id = await insertPractice(supabase, typeId, mode, items);
+  });
+  return result ?? { id };
+}
+
+/** Guarda la respuesta de un ejercicio. No refresca para no cortar la tanda. */
+export async function answerPracticeItem(itemId: string, chosenOption: number | null, correct: boolean) {
+  return mutate(
+    ({ supabase }) =>
+      supabase
+        .from("practice_items")
+        .update({ chosen_option: chosenOption, correct, answered_at: new Date().toISOString() })
+        .eq("id", itemId),
+    { refreshRoute: false },
+  );
+}
+
+/** Cierra la tanda: cuenta aciertos y, si llega al mínimo, da el tipo por dominado. */
+export async function finishPractice(setId: string) {
+  return mutate(
+    async ({ supabase }) => {
+      const [{ data: set }, { data: items }] = await Promise.all([
+        supabase.from("practice_sets").select("exercise_type_id").eq("id", setId).single(),
+        supabase.from("practice_items").select("correct").eq("set_id", setId),
+      ]);
+      if (!set) return invalid("Tanda no encontrada");
+      const total = items?.length ?? 0;
+      const correct = (items ?? []).filter((i) => i.correct).length;
+      const { error } = await supabase
+        .from("practice_sets")
+        .update({ correct, total, finished_at: new Date().toISOString() })
+        .eq("id", setId);
+      if (error) return { error };
+      return supabase
+        .from("exercise_types")
+        .update({ status: passed(correct, total) ? "dominado" : "practicando" })
+        .eq("id", set.exercise_type_id);
+    },
+    { refreshRoute: false },
+  );
 }
 
 // ─── Exámenes ───────────────────────────────────────────────────────

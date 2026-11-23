@@ -138,6 +138,25 @@
 
   .section-title { font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
 
+  /* Markdown de guías, ejercicios y resúmenes (components/ui/markdown.tsx) */
+  .md { font-size: 15px; line-height: 1.6; overflow-wrap: anywhere; }
+  .md > * + * { margin-top: 0.75em; }
+  .md h1, .md h2 { font-size: 17px; font-weight: 700; margin-top: 1.3em; }
+  .md h3, .md h4 { font-size: 15px; font-weight: 700; margin-top: 1.1em; }
+  .md > :first-child { margin-top: 0; }
+  .md ul { list-style: disc; padding-left: 1.3em; }
+  .md ol { list-style: decimal; padding-left: 1.3em; }
+  .md li + li { margin-top: 0.3em; }
+  .md strong { font-weight: 700; }
+  .md a { color: var(--acc); text-decoration: underline; }
+  .md code { font-family: var(--font-jetbrains), ui-monospace, monospace; font-size: 0.88em; background: var(--surface2); border-radius: 6px; padding: 0.1em 0.35em; }
+  .md pre { background: var(--surface2); border-radius: 12px; padding: 12px 14px; overflow-x: auto; }
+  .md pre code { background: none; padding: 0; }
+  .md blockquote { border-left: 3px solid var(--line); padding-left: 12px; color: var(--muted); }
+  .md table { display: block; overflow-x: auto; border-collapse: collapse; font-size: 14px; }
+  .md th, .md td { border: 1px solid var(--line); padding: 6px 10px; text-align: left; }
+  .md .katex-display { overflow-x: auto; overflow-y: hidden; padding: 4px 0; }
+
   /* Portadas generadas de asignatura */
   .cover { background-color: color-mix(in srgb, var(--c) 82%, var(--bg)); }
   .pat-rings { background-image: repeating-radial-gradient(circle at 18% 25%, transparent 0 16px, rgb(0 0 0 / 0.13) 16px 24px); }

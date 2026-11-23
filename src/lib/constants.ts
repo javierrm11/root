@@ -172,11 +172,27 @@ export const GOAL_METRICS = catalog({
   freelance_hours: { label: "Horas freelance", tone: "work" },
 });
 
+// ─── Fase 6 · Práctica por tipos de ejercicio ───────────────────────
+export const EXERCISE_STATUS = catalog({
+  pendiente: { label: "Pendiente", tone: "mut" },
+  practicando: { label: "Practicando", tone: "work" },
+  dominado: { label: "Dominado", tone: "gym" },
+});
+
+export const PRACTICE_MODES = catalog({
+  test: { label: "Test", short: "Eliges una opción" },
+  desarrollo: { label: "Desarrollo", short: "Lo resuelves en papel" },
+});
+
+export type ExerciseStatus = keyof typeof EXERCISE_STATUS;
+export type PracticeMode = keyof typeof PRACTICE_MODES;
+
 // ─── Fase 5 · Ajustes ───────────────────────────────────────────────
 export const AI_FEATURES = catalog({
   resumen: { label: "Resumir temas", short: "Desde los PDF de cada tema" },
   flashcards: { label: "Crear flashcards", short: "Desde los PDF y contenidos de un tema" },
   revision: { label: "Revisión del domingo", short: "Resumen y plan de la semana" },
+  practica: { label: "Práctica de ejercicios", short: "Tipos, guías y tandas si no usas Claude" },
 });
 
 export const NOTIFICATIONS = catalog({

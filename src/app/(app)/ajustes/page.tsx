@@ -10,7 +10,8 @@ import { AI_FEATURES, NOTIFICATIONS, keysOf } from "@/lib/constants";
 import { PUSH_PUBLIC_KEY } from "@/lib/push";
 import { signOut } from "@/app/login/actions";
 import { setSetting } from "@/features/ajustes/actions";
-import { CopyButton, PushSetup, Toggle } from "@/features/ajustes/components";
+import { CopyButton } from "@/components/ui/copy-button";
+import { PushSetup, Toggle } from "@/features/ajustes/components";
 import { getSettings } from "@/features/ajustes/queries";
 import { MCP_TOOLS } from "@/features/mcp/tools";
 

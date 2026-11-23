@@ -18,6 +18,9 @@ import { aiConfigured } from "@/lib/ai";
 
 type Params = Promise<{ id: string }>;
 
+// Leer un PDF escaneado o generar con Gemini puede tardar.
+export const maxDuration = 300;
+
 export default function SubjectPage({ params }: { params: Params }) {
   return (
     <>
@@ -97,6 +100,7 @@ async function Subject({ params }: { params: Params }) {
               topic={topic}
               index={index}
               subjectId={subject.id}
+              subjectName={subject.name}
               userId={userId}
               defaultOpen={index === firstPriority}
               ai={ai}

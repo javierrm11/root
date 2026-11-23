@@ -13,16 +13,17 @@ PWA de **un solo usuario** (el dueño, en iPhone) para organizar estudios, freel
 | 3 | **Contenido** (solo TikTok, nicho programación e IA): calendario de grabar, editar y publicar; pipeline; guion; ideas; ventanas de publicación. Sin métricas ni puntuación de ideas | ✅ hecha |
 | 4 | **Gym** (entreno en directo, rutinas, progreso, cuerpo) + **Objetivos** del trimestre conectados a los módulos | ✅ hecha |
 | 5 | **IA**: Gemini (resumen y flashcards por tema, revisión semanal), **servidor MCP** para Claude, **notificaciones push** con resumen diario, Ajustes | ✅ hecha |
+| 6 | **Estudiar con Claude**: Claude lee los PDF por MCP (`leer_archivo`) y prepara tipos de ejercicio, guías y tandas de práctica que se hacen en la app | ✅ hecha |
 | — | Alarma nativa (Capacitor + AlarmKit en iOS) | descartada por ahora |
 
-Las cinco fases están implementadas. El prototipo de diseño de todas las pantallas está en un artifact de claude.ai.
+Las seis fases están implementadas. El prototipo de diseño de todas las pantallas está en un artifact de claude.ai.
 
 ## Stack
 
 - **Next.js 16.4** (App Router, Turbopack) con `cacheComponents` y `partialPrefetching`. Lee `node_modules/next/dist/docs/` antes de usar APIs de Next: hay cambios importantes respecto a versiones anteriores (`proxy.ts` en vez de `middleware.ts`, `refresh()` de `next/cache`, reglas de `<Suspense>`).
 - **React 19.3**, **TypeScript** estricto, **Tailwind CSS 4** (tokens en `src/app/globals.css`).
 - **Supabase**: Postgres + Auth (email y contraseña) + Storage (bucket privado `files`). Cliente `@supabase/ssr`.
-- **ts-fsrs** para la repetición espaciada de las flashcards. **lucide-react** para iconos.
+- **ts-fsrs** para la repetición espaciada de las flashcards. **lucide-react** para iconos. **unpdf** para sacar el texto de los PDF y **react-markdown + KaTeX** para el Markdown con fórmulas.
 - No se usa shadcn/ui: hay primitivas propias en `src/components/ui`.
 
 ## Comandos
@@ -60,6 +61,8 @@ src/app/
     estudios/(tabs)/      Asignaturas · Exámenes · Flashcards · Historial (TopNav)
     estudios/asignatura/[id]   dentro de una asignatura (temas tipo Moodle)
     estudios/repasar/[id]      sesión de flashcards
+    estudios/ejercicio/[id]    tipo de ejercicio: guía y tandas
+    estudios/practica/[id]     tanda de práctica (PracticeLive)
     proyectos/(tabs)/     Proyectos · Ideas · Clientes · Finanzas (TopNav)
     proyectos/proyecto/[id]    ficha, features, horas y facturas de un proyecto
     contenido/(tabs)/     Calendario · Pipeline · Ideas (TopNav)
@@ -136,7 +139,8 @@ public/sw.js              service worker (solo fallback offline)
   - `…_fase2.sql`: clientes, proyectos, features, horas, ideas, facturas y gastos;
   - `…_fase3.sql`: ideas de contenido, vídeos y ventanas de publicación;
   - `…_fase4.sql`: ejercicios, rutinas, entrenos, series, medidas, fotos y objetivos;
-  - `…_fase5.sql`: `topics.summary`, ajustes, suscripciones push y revisiones semanales.
+  - `…_fase5.sql`: `topics.summary`, ajustes, suscripciones push y revisiones semanales;
+  - `…_fase6.sql`: texto de los archivos (`study_files.content_md`), tipos de ejercicio, tandas y ejercicios de práctica.
 - Storage: bucket privado `files`, rutas `{user_id}/subjects/{subject_id}/…`, `{user_id}/covers/…` (portadas de asignaturas y proyectos) y `{user_id}/education/…`. Se leen con URLs firmadas (`signPaths`) y se borran con `removePaths` al eliminar la fila.
 - Las flashcards guardan el estado FSRS completo en `fsrs` (jsonb) y la próxima fecha en `due`.
 
@@ -150,6 +154,19 @@ public/sw.js              service worker (solo fallback offline)
 - Estado de un tema (`logic.ts`): Dominado (≥4), Repasar (2–3), Prioridad (≤1 con archivos) o Sin empezar.
 - **Cuándo empezar a estudiar** (`startAdvice`): `(5 − dominio) × 1,5 h` por tema, a 2 h al día, más 2 días de repaso.
 - **Toca estudiar** (en Hoy): ordena los temas por `(5 − dominio) / días hasta el examen`.
+
+## Estudiar con Claude (fase 6)
+
+- **Texto de los archivos** (`features/estudios/file-text.ts`): al subir un PDF o una imagen, `after()` saca el texto y lo guarda en `study_files.content_md`, con marcas `--- Página N ---`.
+  - PDF con texto: `unpdf`. Si sale menos de 250 caracteres por página (escaneado o casi todo fórmulas), o es una imagen, lo transcribe Gemini (si hay clave).
+  - La pantalla nunca lee `content_md` (`FILE_COLUMNS` y `StudyFileMeta` en queries): puede ser muy largo.
+  - El botón de cada archivo lo vuelve a leer (`rereadStudyFile`). `leer_archivo` lo lee en ese momento si aún no estaba, y lo devuelve por trozos de unas 45 000 letras.
+- **Método de estudio** (el del usuario): boletín → **tipos de ejercicio** (`exercise_types`) → **guía** de cada tipo (teoría, pasos y ejemplo resuelto, en Markdown) → **tandas** (`practice_sets` + `practice_items`, test o desarrollo, con pista y solución opcionales).
+  - Lo genera Claude por MCP: `guardar_tipos_ejercicio`, `guardar_guia`, `crear_practica` y `resultados_practica`. Los esquemas compartidos están en `features/estudios/practice.ts`.
+  - Gemini es la reserva, con botones si `settings.ai.practica` está activo (`detectExerciseTypes`, `generateGuide`, `generatePractice` en `ai.ts`).
+  - La app tiene botones "Pedir a Claude" que copian el mensaje que hay que pegarle (`CLAUDE_PROMPTS` en logic.ts).
+  - `PracticeLive` guarda cada respuesta al momento. Al terminar, con un 80 % o más (`PASS_RATIO`) el tipo pasa a dominado y se propone el siguiente (`nextExerciseType`). El tema sugiere su dominio según los tipos dominados (`suggestedMastery`).
+- **Markdown**: `components/ui/markdown.tsx` (react-markdown, GFM y KaTeX) con estilos `.md` en globals.css. Es un Server Component: en las pantallas de cliente se pasa ya pintado como `ReactNode`.
 
 ## Proyectos (cómo funciona)
 
@@ -201,6 +218,8 @@ public/sw.js              service worker (solo fallback offline)
 - **MCP** (`features/mcp/tools.ts`):
   - Cada herramienta es `{ name, description, input (zod), run }` y llama a las consultas y acciones existentes.
   - Para añadir una, agrégala a `MCP_TOOLS`; también aparece listada en Ajustes.
+  - Si `run` devuelve un string, se manda tal cual (p. ej. `leer_archivo`); si no, como JSON.
+  - Las rutas que llaman a Gemini o leen PDF escaneados exportan `maxDuration = 300`.
   - La ruta `api/mcp/[secret]` responde 404 si el secreto no coincide.
 - **Push**:
   - `sendPush` en `lib/push.ts`; las suscripciones van en `push_subscriptions` y se activan desde Ajustes (`PushSetup`).

@@ -1,9 +1,12 @@
 import "server-only";
 import { z } from "zod";
-import { AGENDA_CATEGORIES, EXAM_KINDS, INBOX_KINDS, VIDEO_FORMATS, keysOf } from "@/lib/constants";
+import { AGENDA_CATEGORIES, EXAM_KINDS, INBOX_KINDS, PRACTICE_MODES, VIDEO_FORMATS, keysOf } from "@/lib/constants";
+import { requireUser } from "@/lib/supabase/server";
 import { createAgendaItem, createInboxItem } from "@/features/hoy/actions";
 import { getToday } from "@/features/hoy/queries";
-import { addContent, saveExam, setMastery } from "@/features/estudios/actions";
+import { addContent, createPractice, saveExam, saveExerciseTypes, saveGuide, setMastery } from "@/features/estudios/actions";
+import { fileTextForClaude } from "@/features/estudios/file-text";
+import { ExerciseTypeInput, PracticeItemInput, loadExerciseType, practiceHistory } from "@/features/estudios/practice";
 import { startAdvice } from "@/features/estudios/logic";
 import { getExamsView, getSubjectDetail, getSubjectsOverview } from "@/features/estudios/queries";
 import { logHours } from "@/features/proyectos/actions";
@@ -57,7 +60,8 @@ export const MCP_TOOLS: ToolDef[] = [
   }),
   tool({
     name: "asignatura",
-    description: "Temas de una asignatura con su dominio (0–5), contenidos, archivos, resúmenes y exámenes.",
+    description:
+      "Temas de una asignatura con su dominio (0–5), contenidos, archivos (con su id para leer_archivo), tipos de ejercicio, resúmenes y exámenes.",
     input: z.object({ subject_id: id }),
     run: async ({ subject_id }) => {
       const d = await getSubjectDetail(subject_id);
@@ -69,7 +73,15 @@ export const MCP_TOOLS: ToolDef[] = [
           dominio: t.mastery,
           resumen: t.summary,
           contenidos: t.contents.map((c) => ({ id: c.id, titulo: c.title, hecho: c.done })),
-          archivos: t.files.map((f) => ({ nombre: f.name, tipo: f.kind, estado: f.status })),
+          archivos: t.files.map((f) => ({ id: f.id, nombre: f.name, tipo: f.kind, estado: f.status, leido: Boolean(f.content_source) })),
+          tipos_ejercicio: t.exerciseTypes.map((e) => ({
+            id: e.id,
+            nombre: e.name,
+            estado: e.status,
+            cantidad: e.count,
+            ejercicios: e.examples,
+            tiene_guia: Boolean(e.guide),
+          })),
         })),
         examenes: d.exams.map((e) => ({ tipo: e.kind, fecha: e.exam_date, dias: e.days, nota: e.grade })),
       };
@@ -99,6 +111,65 @@ export const MCP_TOOLS: ToolDef[] = [
     description: "Añade un contenido a estudiar a la checklist de un tema.",
     input: z.object({ topic_id: id, title: z.string().min(1) }),
     run: ({ topic_id, title }) => addContent(topic_id, form({ title })),
+  }),
+  tool({
+    name: "leer_archivo",
+    description:
+      "Lee el contenido de un archivo de estudios (PDF de teoría, boletín de ejercicios, guía docente o foto) en Markdown, por páginas. " +
+      "Si es largo devuelve un trozo: vuelve a llamar con desde_pagina para seguir. Los ids salen de la herramienta asignatura.",
+    input: z.object({ file_id: id, desde_pagina: z.number().int().min(1).default(1) }),
+    run: ({ file_id, desde_pagina }) => fileTextForClaude(file_id, desde_pagina),
+  }),
+  tool({
+    name: "guardar_tipos_ejercicio",
+    description:
+      "Método de estudio, paso 1: guarda los tipos de ejercicio de un tema tras leer su boletín (los que se resuelven con el mismo método). " +
+      "Si ya existe uno con el mismo nombre, lo actualiza. Devuelve los ids.",
+    input: z.object({ topic_id: id, tipos: z.array(ExerciseTypeInput).min(1).max(20) }),
+    run: ({ topic_id, tipos }) => saveExerciseTypes(topic_id, tipos),
+  }),
+  tool({
+    name: "guardar_guia",
+    description:
+      "Método de estudio, paso 2: guarda la explicación de un tipo de ejercicio en Markdown (fórmulas en LaTeX con $…$): " +
+      "un poco de teoría (## Teoría), los pasos para resolverlo (## Pasos) y un ejemplo resuelto (## Ejemplo resuelto). Sustituye la anterior.",
+    input: z.object({ exercise_type_id: id, guia: z.string().min(1) }),
+    run: ({ exercise_type_id, guia }) => saveGuide(exercise_type_id, guia),
+  }),
+  tool({
+    name: "crear_practica",
+    description:
+      "Método de estudio, paso 3: crea una tanda de ejercicios de un tipo para hacerla en la app, con pista y solución que solo se ven al pulsar. " +
+      "En test cada ejercicio lleva opciones y el índice (desde 0) de la correcta; en desarrollo, el resultado final si lo hay. " +
+      "Si acierta el 80 % o más, el tipo queda dominado. Mira antes resultados_practica para centrarte en lo fallado.",
+    input: z.object({
+      exercise_type_id: id,
+      modalidad: z.enum(keysOf(PRACTICE_MODES)),
+      ejercicios: z.array(PracticeItemInput).min(1).max(15),
+    }),
+    run: async ({ exercise_type_id, modalidad, ejercicios }) => {
+      const result = await createPractice(exercise_type_id, modalidad, ejercicios);
+      return "id" in result ? { ...result, mensaje: "Tanda creada: aparece en la app, en el tipo de ejercicio." } : result;
+    },
+  }),
+  tool({
+    name: "resultados_practica",
+    description: "Tandas hechas de un tipo de ejercicio: aciertos, lo que falló (con lo que marcó en el test) y la guía guardada.",
+    input: z.object({ exercise_type_id: id }),
+    run: async ({ exercise_type_id }) => {
+      const { supabase } = await requireUser();
+      const loaded = await loadExerciseType(supabase, exercise_type_id);
+      if (!loaded) return { error: "Tipo de ejercicio no encontrado" };
+      const { type, topic } = loaded;
+      return {
+        tipo: type.name,
+        tema: topic.title,
+        asignatura: topic.subjectName,
+        estado: type.status,
+        guia: type.guide,
+        tandas: await practiceHistory(supabase, exercise_type_id),
+      };
+    },
   }),
   tool({
     name: "crear_examen",

@@ -14,22 +14,6 @@ export function Toggle({ on }: { on: boolean }) {
   );
 }
 
-export function CopyButton({ value, label = "Copiar" }: { value: string; label?: string }) {
-  const [copied, setCopied] = useState(false);
-  return (
-    <Button
-      variant="small"
-      onClick={async () => {
-        await navigator.clipboard.writeText(value);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 1500);
-      }}
-    >
-      {copied ? "Copiada" : label}
-    </Button>
-  );
-}
-
 const base64ToBytes = (base64: string) => {
   const padded = (base64 + "=".repeat((4 - (base64.length % 4)) % 4)).replace(/-/g, "+").replace(/_/g, "/");
   return Uint8Array.from(atob(padded), (c) => c.charCodeAt(0));

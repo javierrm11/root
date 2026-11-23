@@ -6,13 +6,15 @@ import { Icon } from "@/components/ui/icon";
 import { InlineAdd } from "@/components/ui/inline-add";
 import { Chip } from "@/components/ui/primitives";
 import { cn } from "@/lib/cn";
-import { FILE_KINDS, FILE_STATUS, toOptions } from "@/lib/constants";
-import type { StudyFile } from "@/lib/types";
+import { Markdown } from "@/components/ui/markdown";
+import { FILE_KINDS, FILE_STATUS, toOptions, type AiFeature } from "@/lib/constants";
 import { setFlag } from "@/features/common/actions";
-import { addContent, addStudyFile, cycleFileStatus, deleteStudyFile, deleteTopic, setMastery } from "../actions";
+import { addContent, addStudyFile, cycleFileStatus, deleteStudyFile, deleteTopic, rereadStudyFile, setMastery } from "../actions";
 import { generateTopicFlashcards, summarizeTopic } from "../ai";
-import { MAX_MASTERY, topicStatus } from "../logic";
-import type { TopicDetail } from "../queries";
+import { MAX_MASTERY, isReadable, topicStatus } from "../logic";
+import type { StudyFileMeta, TopicDetail } from "../queries";
+import { AiButton } from "./ai-button";
+import { ExerciseTypes } from "./exercise-types";
 
 const ACCEPT_FILES = "application/pdf,image/*,.doc,.docx,.odt,.zip";
 
@@ -23,9 +25,10 @@ function formatSize(bytes: number | null) {
 
 const SubHeading = ({ children }: { children: string }) => <h3 className="section-title mt-3">{children}</h3>;
 
-/** Fila de archivo: abre el PDF, cambia el estado del boletín y lo borra. */
-export function FileRow({ file }: { file: StudyFile & { url: string | null } }) {
+/** Fila de archivo: abre el PDF, cambia el estado del boletín, lo vuelve a leer para Claude y lo borra. */
+export function FileRow({ file }: { file: StudyFileMeta & { url: string | null } }) {
   const kind = FILE_KINDS[file.kind];
+  const readable = isReadable(file.mime_type);
   return (
     <div className="flex items-center gap-3 rounded-xl border border-line px-2.5 py-2">
       <span className={cn("tinted grid h-10 w-[34px] shrink-0 place-items-center rounded-md font-mono text-[10px] font-bold", `tone-${kind.tone}`)}>
@@ -36,8 +39,18 @@ export function FileRow({ file }: { file: StudyFile & { url: string | null } }) 
         <span className="block text-[13px] text-muted">
           {kind.label}
           {file.size_bytes ? ` · ${formatSize(file.size_bytes)}` : ""}
+          {readable && (file.content_source ? " · Claude puede leerlo" : " · sin leer")}
         </span>
       </a>
+      {readable && (
+        <ActionButton
+          action={rereadStudyFile.bind(null, file.id)}
+          label={file.content_source ? "Volver a leer para Claude" : "Leer para Claude"}
+          className="grid size-9 shrink-0 place-items-center text-muted"
+        >
+          <Icon name="repeat" size={15} />
+        </ActionButton>
+      )}
       {file.status && (
         <ActionButton action={cycleFileStatus.bind(null, file.id, file.status)} label="Cambiar estado del boletín">
           <Chip tone={FILE_STATUS[file.status].tone}>{FILE_STATUS[file.status].label}</Chip>
@@ -105,6 +118,7 @@ export function TopicItem({
   topic,
   index,
   subjectId,
+  subjectName,
   userId,
   defaultOpen,
   ai,
@@ -112,10 +126,11 @@ export function TopicItem({
   topic: TopicDetail;
   index: number;
   subjectId: string;
+  subjectName: string;
   userId: string;
   defaultOpen?: boolean;
   /** Funciones de IA activas (null si no hay GEMINI_API_KEY). */
-  ai: { resumen: boolean; flashcards: boolean } | null;
+  ai: Record<AiFeature, boolean> | null;
 }) {
   const status = topicStatus(topic.mastery, topic.files.length > 0);
   const done = topic.contents.filter((c) => c.done).length;
@@ -154,23 +169,20 @@ export function TopicItem({
         {ai && (ai.resumen || ai.flashcards || topic.summary) && (
           <>
             <SubHeading>Con IA</SubHeading>
-            {topic.summary && <div className="rounded-xl bg-surface-2 p-3.5 text-sm leading-relaxed whitespace-pre-line">{topic.summary}</div>}
+            {topic.summary && <Markdown className="rounded-xl bg-surface-2 p-3.5 text-sm">{topic.summary}</Markdown>}
             <div className="flex flex-wrap gap-2">
-              {ai.resumen && (
-                <ActionButton action={summarizeTopic.bind(null, topic.id)} className="tinted tone-acc inline-flex h-9 items-center gap-1.5 rounded-[9px] px-3 text-[13px] font-semibold">
-                  <Icon name="sparkles" size={14} />
-                  {topic.summary ? "Rehacer resumen" : "Resumir tema"}
-                </ActionButton>
-              )}
+              {ai.resumen && <AiButton action={summarizeTopic.bind(null, topic.id)}>{topic.summary ? "Rehacer resumen" : "Resumir tema"}</AiButton>}
               {ai.flashcards && (
-                <ActionButton action={generateTopicFlashcards.bind(null, topic.id)} className="tinted tone-acc inline-flex h-9 items-center gap-1.5 rounded-[9px] px-3 text-[13px] font-semibold">
-                  <Icon name="layers" size={14} />
+                <AiButton action={generateTopicFlashcards.bind(null, topic.id)} icon="layers">
                   Crear flashcards
-                </ActionButton>
+                </AiButton>
               )}
             </div>
           </>
         )}
+
+        <SubHeading>Tipos de ejercicio</SubHeading>
+        <ExerciseTypes topic={topic} subjectName={subjectName} gemini={Boolean(ai?.practica)} />
 
         <SubHeading>Contenidos a estudiar</SubHeading>
         <div>
