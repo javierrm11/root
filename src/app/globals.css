@@ -100,6 +100,9 @@
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
     background: var(--bg);
+    /* Margen bajo la barra inferior: algo menos que la zona de la raya de inicio,
+       para que los iconos queden abajo como en una app nativa. */
+    --nav-inset: max(calc(env(safe-area-inset-bottom) - 18px), 6px);
   }
   body {
     background: var(--bg);
