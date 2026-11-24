@@ -5,6 +5,7 @@ import { NextExamChip } from "@/features/estudios/components/next-exam-chip";
 
 const TABS: NavItem[] = [
   { href: "/estudios", label: "Asignaturas", exact: true },
+  { href: "/estudios/plan", label: "Plan" },
   { href: "/estudios/examenes", label: "Exámenes" },
   { href: "/estudios/flashcards", label: "Flashcards" },
   { href: "/estudios/historial", label: "Historial" },

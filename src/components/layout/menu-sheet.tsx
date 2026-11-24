@@ -1,14 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { cn } from "@/lib/cn";
 import { Icon } from "@/components/ui/icon";
 import { Sheet } from "@/components/ui/sheet";
 import { MENU } from "./nav-config";
 
 /** Avatar de la cabecera de Hoy (solo móvil) que abre el menú con los módulos de apoyo. */
-export function MenuSheet() {
+export function MenuSheet({ children }: { children?: ReactNode }) {
   const [open, setOpen] = useState(false);
   return (
     <>
@@ -16,9 +16,9 @@ export function MenuSheet() {
         type="button"
         aria-label="Abrir menú"
         onClick={() => setOpen(true)}
-        className="grid size-11 place-items-center rounded-xl bg-accent text-ink active:opacity-70 md:hidden"
+        className={cn("grid place-items-center active:opacity-70 md:hidden", !children && "size-11 rounded-xl bg-accent text-ink")}
       >
-        <Icon name="user" />
+        {children ?? <Icon name="user" />}
       </button>
       <Sheet open={open} onClose={() => setOpen(false)} title="Tu panel">
         <nav className="divide-y divide-line">

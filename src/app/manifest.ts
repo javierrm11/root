@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 import { PALETTES } from "@/lib/theme";
 
 export default function manifest(): MetadataRoute.Manifest {
-  const background = PALETTES[0].dark;
+  const background = PALETTES[0].light;
   return {
     name: "root",
     short_name: "root",

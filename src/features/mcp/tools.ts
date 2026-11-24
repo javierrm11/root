@@ -1,14 +1,31 @@
 import "server-only";
 import { z } from "zod";
 import { AGENDA_CATEGORIES, EXAM_KINDS, INBOX_KINDS, PRACTICE_MODES, VIDEO_FORMATS, keysOf } from "@/lib/constants";
+import { daysBetween, todayISO } from "@/lib/dates";
+import { notify } from "@/lib/notify";
 import { requireUser } from "@/lib/supabase/server";
-import { createAgendaItem, createInboxItem } from "@/features/hoy/actions";
+import { createAgendaItem, createInboxItem, moveAgendaItem, toggleHabit } from "@/features/hoy/actions";
+import { deleteRow, setFlag } from "@/features/common/actions";
+import { getCalendarItems } from "@/features/calendario/queries";
 import { getToday } from "@/features/hoy/queries";
-import { addContent, createPractice, saveExam, saveExerciseTypes, saveGuide, setMastery } from "@/features/estudios/actions";
+import {
+  addContent,
+  createPractice,
+  createStudyTasks,
+  deleteStudyTasks,
+  moveStudyTask,
+  rescheduleStudyPlan,
+  saveExam,
+  saveExerciseTypes,
+  saveGuide,
+  setMastery,
+  toggleStudyTask,
+} from "@/features/estudios/actions";
+import { StudyTaskInput } from "@/features/estudios/plan";
 import { fileTextForClaude } from "@/features/estudios/file-text";
 import { ExerciseTypeInput, PracticeItemInput, loadExerciseType, practiceHistory } from "@/features/estudios/practice";
 import { startAdvice } from "@/features/estudios/logic";
-import { getExamsView, getSubjectDetail, getSubjectsOverview } from "@/features/estudios/queries";
+import { getExamsView, getStudyPlan, getSubjectDetail, getSubjectsOverview } from "@/features/estudios/queries";
 import { logHours } from "@/features/proyectos/actions";
 import { getFinances, getProjectsOverview } from "@/features/proyectos/queries";
 import { replaceWindows, saveContentIdea } from "@/features/contenido/actions";
@@ -149,7 +166,15 @@ export const MCP_TOOLS: ToolDef[] = [
     }),
     run: async ({ exercise_type_id, modalidad, ejercicios }) => {
       const result = await createPractice(exercise_type_id, modalidad, ejercicios);
-      return "id" in result ? { ...result, mensaje: "Tanda creada: aparece en la app, en el tipo de ejercicio." } : result;
+      if (!("id" in result)) return result;
+      const { supabase } = await requireUser();
+      await notify(supabase, {
+        kind: "claude",
+        title: `Claude te ha preparado una tanda de ${modalidad === "test" ? "test" : "desarrollo"}`,
+        body: `${ejercicios.length} ejercicios, con pista y solución.`,
+        url: `/estudios/practica/${result.id}`,
+      });
+      return { ...result, mensaje: "Tanda creada: aparece en la app, en el tipo de ejercicio, y le ha llegado un aviso." };
     },
   }),
   tool({
@@ -169,6 +194,112 @@ export const MCP_TOOLS: ToolDef[] = [
         guia: type.guide,
         tandas: await practiceHistory(supabase, exercise_type_id),
       };
+    },
+  }),
+  tool({
+    name: "ver_calendario",
+    description:
+      "Calendario global entre dos fechas (máx. 62 días): exámenes, tareas del plan, bloques de agenda, grabar/editar/publicar vídeos, entrenos y rutinas previstas, facturas que vencen y entregas. " +
+      "Cada elemento trae type e id: las tareas (tarea) y los bloques (bloque) se pueden mover, borrar o marcar como hechos.",
+    input: z.object({ desde: day, hasta: day }),
+    run: async ({ desde, hasta }) => {
+      if (hasta < desde) return { error: "«hasta» va antes que «desde»" };
+      if (daysBetween(desde, hasta) > 62) return { error: "Pide como mucho 62 días" };
+      const items = await getCalendarItems(desde, hasta);
+      return items.map((item) => ({ ...item, href: undefined }));
+    },
+  }),
+  tool({
+    name: "crear_plan_estudio",
+    description:
+      "Plan de exámenes: guarda de golpe las tareas de estudio día a día (sin horas). Cada tarea: día, qué hacer en concreto, tipo " +
+      "(estudiar, ejercicios, repasar, flashcards, simulacro u otro) y, si se puede, la asignatura, el tema y el tipo de ejercicio (ids de la herramienta asignatura). " +
+      "Reparte 2–4 tareas por día, deja días de repaso y un simulacro antes de cada examen. Con reemplazar_desde, primero borra las pendientes desde ese día (de esas asignaturas).",
+    input: z.object({ tareas: z.array(StudyTaskInput).min(1).max(300), reemplazar_desde: day.optional() }),
+    run: async ({ tareas, reemplazar_desde }) => {
+      const result = await createStudyTasks(tareas, reemplazar_desde);
+      if ("error" in result && result.error) return result;
+      const { supabase } = await requireUser();
+      const days = new Set(tareas.map((t) => t.dia)).size;
+      await notify(supabase, {
+        kind: "claude",
+        title: "Claude ha preparado tu plan de exámenes",
+        body: `${tareas.length} tareas repartidas en ${days} días.`,
+        url: "/estudios/plan",
+      });
+      return result;
+    },
+  }),
+  tool({
+    name: "ver_plan",
+    description: "Plan de exámenes: tareas atrasadas, las de las próximas semanas (con id y si están hechas) y cómo va el plan de cada examen.",
+    input: z.object({ semanas: z.number().int().min(0).max(26).default(4).describe("0 = todo el plan") }),
+    run: async ({ semanas }) => {
+      const plan = await getStudyPlan(semanas);
+      const task = (t: (typeof plan.overdue)[number]) => ({
+        id: t.id,
+        dia: t.day,
+        titulo: t.title,
+        tipo: t.kind,
+        asignatura: t.subjectName,
+        hecha: t.done,
+        notas: t.notes,
+      });
+      return {
+        hoy: plan.today,
+        examenes: plan.exams.map((e) => ({ asignatura: e.subjectName, fecha: e.exam_date, dias: e.days, plan_hechas: e.planDone, plan_total: e.planTotal })),
+        atrasadas: plan.overdue.map(task),
+        dias: plan.days.map((d) => ({ dia: d.day, tareas: d.tasks.map(task) })),
+        mas_adelante: plan.later,
+      };
+    },
+  }),
+  tool({
+    name: "replanificar",
+    description: "Reparte las tareas atrasadas del plan entre los próximos días, antes del examen de cada asignatura, en los días con menos carga.",
+    input: z.object({}),
+    run: () => rescheduleStudyPlan(),
+  }),
+  tool({
+    name: "borrar_plan",
+    description: "Borra las tareas PENDIENTES del plan entre dos fechas (las hechas se quedan), opcionalmente solo de una asignatura.",
+    input: z.object({ desde: day, hasta: day.optional(), asignatura_id: id.optional() }),
+    run: ({ desde, hasta, asignatura_id }) => deleteStudyTasks(desde, hasta, asignatura_id),
+  }),
+  tool({
+    name: "mover",
+    description: "Mueve a otro día una tarea del plan (tipo tarea) o un bloque de la agenda (tipo bloque, también de hora). Los ids salen de ver_calendario o ver_plan.",
+    input: z.object({ tipo: z.enum(["tarea", "bloque"]), id, dia: day, hora_inicio: time.optional(), hora_fin: time.optional() }),
+    run: ({ tipo, id, dia, hora_inicio, hora_fin }) => (tipo === "tarea" ? moveStudyTask(id, dia) : moveAgendaItem(id, dia, hora_inicio, hora_fin)),
+  }),
+  tool({
+    name: "borrar",
+    description: "Borra una tarea del plan, un bloque de la agenda o un aviso programado.",
+    input: z.object({ tipo: z.enum(["tarea", "bloque", "aviso"]), id }),
+    run: ({ tipo, id }) => deleteRow(tipo === "tarea" ? "study_tasks" : tipo === "bloque" ? "agenda_items" : "notifications", id),
+  }),
+  tool({
+    name: "marcar_hecho",
+    description: "Marca (o desmarca) como hecha una tarea del plan, un bloque de la agenda o un hábito (los hábitos, en el día indicado o hoy).",
+    input: z.object({ tipo: z.enum(["tarea", "bloque", "habito"]), id, hecho: z.boolean().default(true), dia: day.optional() }),
+    run: ({ tipo, id, hecho, dia }) =>
+      tipo === "tarea" ? toggleStudyTask(id, hecho) : tipo === "bloque" ? setFlag("agenda_items", id, hecho) : toggleHabit(id, dia ?? todayISO(), hecho),
+  }),
+  tool({
+    name: "enviar_aviso",
+    description:
+      "Manda una notificación al móvil (y la deja en la campana de Hoy). Sin cuando, llega ya; con cuando (fecha y hora con zona, p. ej. 2026-12-01T18:00:00+01:00) " +
+      "se programa y sale en la siguiente pasada de avisos (8:00 o 20:00, hora de Madrid). De 23:00 a 8:00 espera a la mañana si No molestar está activo.",
+    input: z.object({
+      titulo: z.string().min(1).max(120),
+      texto: z.string().max(500).optional(),
+      cuando: z.string().datetime({ offset: true }).optional(),
+      enlace: z.string().startsWith("/").optional().describe("Ruta de la app que abre al tocarla, p. ej. /estudios/plan"),
+    }),
+    run: async ({ titulo, texto, cuando, enlace }) => {
+      const { supabase } = await requireUser();
+      await notify(supabase, { kind: "claude", title: titulo, body: texto, url: enlace, sendAt: cuando ? new Date(cuando).toISOString() : undefined });
+      return { mensaje: cuando ? "Aviso programado." : "Aviso enviado." };
     },
   }),
   tool({

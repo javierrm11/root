@@ -23,6 +23,7 @@ import type {
   NotificationKind,
   ExerciseStatus,
   PracticeMode,
+  StudyTaskKind,
 } from "./constants";
 
 type Owned = { id: string; user_id: string; created_at: string };
@@ -305,4 +306,28 @@ export type PracticeItem = Owned & {
   chosen_option: number | null;
   correct: boolean | null;
   answered_at: string | null;
+};
+
+// ─── Fase 7 · Plan de exámenes y avisos ─────────────────────────────
+export type StudyTask = Owned & {
+  day: string;
+  subject_id: string | null;
+  topic_id: string | null;
+  exercise_type_id: string | null;
+  kind: StudyTaskKind;
+  title: string;
+  notes: string | null;
+  done: boolean;
+  done_at: string | null;
+  position: number;
+};
+
+export type AppNotification = Owned & {
+  kind: string;
+  title: string;
+  body: string | null;
+  url: string | null;
+  send_at: string;
+  sent_at: string | null;
+  read_at: string | null;
 };

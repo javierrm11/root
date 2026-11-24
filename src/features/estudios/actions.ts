@@ -11,6 +11,7 @@ import {
   EXERCISE_STATUS,
   FILE_KINDS,
   PRACTICE_MODES,
+  STUDY_TASK_KINDS,
   keysOf,
   type ExerciseStatus,
   type FileStatus,
@@ -21,6 +22,7 @@ import { removePaths, removeRowFile } from "@/lib/storage";
 import type { Db } from "@/lib/supabase/server";
 import { readFileText } from "./file-text";
 import { NEXT_FILE_STATUS, isReadable, passed } from "./logic";
+import { insertStudyTasks, rescheduleOverdueTasks, type StudyTaskInput } from "./plan";
 import { insertPractice, upsertExerciseTypes, type ExerciseTypeInput, type PracticeItemInput } from "./practice";
 
 const scheduler = fsrs();
@@ -233,6 +235,70 @@ export async function finishPractice(setId: string) {
     },
     { refreshRoute: false },
   );
+}
+
+// ─── Plan de exámenes ───────────────────────────────────────────────
+export async function toggleStudyTask(id: string, done: boolean) {
+  return mutate(({ supabase }) =>
+    supabase.from("study_tasks").update({ done, done_at: done ? new Date().toISOString() : null }).eq("id", id),
+  );
+}
+
+/** Añadir una tarea al plan a mano. */
+export async function addStudyTask(fd: FormData) {
+  return mutate(async ({ supabase }) => {
+    const title = text(fd, "title");
+    const day = text(fd, "day");
+    if (!title || !day) return invalid("Pon el día y qué hay que hacer");
+    await insertStudyTasks(supabase, [
+      {
+        dia: day,
+        titulo: title,
+        tipo: oneOf(fd, "kind", keysOf(STUDY_TASK_KINDS), "estudiar"),
+        asignatura_id: optText(fd, "subject_id") ?? undefined,
+        notas: optText(fd, "notes") ?? undefined,
+      },
+    ]);
+  });
+}
+
+/** Crea varias tareas de golpe (Claude por MCP). Con `replaceFrom` rehace el plan desde ese día. */
+export async function createStudyTasks(tasks: StudyTaskInput[], replaceFrom?: string) {
+  let created = 0;
+  const result = await mutate(async ({ supabase }) => {
+    created = await insertStudyTasks(supabase, tasks, replaceFrom);
+  });
+  return result ?? { creadas: created };
+}
+
+export async function moveStudyTask(id: string, day: string) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) return { error: "Fecha no válida" };
+  return mutate(({ supabase }) => supabase.from("study_tasks").update({ day }).eq("id", id));
+}
+
+/** Reparte las tareas atrasadas entre los próximos días (antes de cada examen). */
+export async function rescheduleStudyPlan() {
+  let moved = 0;
+  const result = await mutate(async ({ supabase }) => {
+    moved = await rescheduleOverdueTasks(supabase);
+  });
+  return result ?? { movidas: moved };
+}
+
+/** Botón "Reorganizar lo atrasado" de la pestaña Plan. */
+export async function reorganizeOverdue() {
+  const result = await rescheduleStudyPlan();
+  return "error" in result ? { error: result.error } : undefined;
+}
+
+/** Borra las tareas pendientes de un rango (opcionalmente de una asignatura). */
+export async function deleteStudyTasks(from: string, to?: string, subjectId?: string) {
+  return mutate(({ supabase }) => {
+    let q = supabase.from("study_tasks").delete().eq("done", false).gte("day", from);
+    if (to) q = q.lte("day", to);
+    if (subjectId) q = q.eq("subject_id", subjectId);
+    return q;
+  });
 }
 
 // ─── Exámenes ───────────────────────────────────────────────────────

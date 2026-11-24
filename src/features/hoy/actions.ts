@@ -21,6 +21,17 @@ export async function createAgendaItem(fd: FormData) {
   });
 }
 
+/** Mover un bloque de la agenda a otro día (y hora). Lo usa Claude por MCP. */
+export async function moveAgendaItem(id: string, day: string, startTime?: string | null, endTime?: string | null) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) return { error: "Fecha no válida" };
+  return mutate(({ supabase }) =>
+    supabase
+      .from("agenda_items")
+      .update({ day, ...(startTime !== undefined && { start_time: startTime }), ...(endTime !== undefined && { end_time: endTime }) })
+      .eq("id", id),
+  );
+}
+
 // ─── Hábitos ────────────────────────────────────────────────────────
 export async function createHabit(fd: FormData) {
   return mutate(({ supabase }) => {

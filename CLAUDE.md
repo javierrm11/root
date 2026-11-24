@@ -14,9 +14,10 @@ PWA de **un solo usuario** (el dueño, en iPhone) para organizar estudios, freel
 | 4 | **Gym** (entreno en directo, rutinas, progreso, cuerpo) + **Objetivos** del trimestre conectados a los módulos | ✅ hecha |
 | 5 | **IA**: Gemini (resumen y flashcards por tema, revisión semanal), **servidor MCP** para Claude, **notificaciones push** con resumen diario, Ajustes | ✅ hecha |
 | 6 | **Estudiar con Claude**: Claude lee los PDF por MCP (`leer_archivo`) y prepara tipos de ejercicio, guías y tandas de práctica que se hacen en la app | ✅ hecha |
+| 7 | **Rediseño «Widgets suaves»** + **calendario global** + **plan de exámenes** + **avisos** (campana, mañana y tarde) + herramientas MCP para planificar | ✅ hecha |
 | — | Alarma nativa (Capacitor + AlarmKit en iOS) | descartada por ahora |
 
-Las seis fases están implementadas. El prototipo de diseño de todas las pantallas está en un artifact de claude.ai.
+Las siete fases están implementadas. El prototipo de diseño de todas las pantallas está en un artifact de claude.ai.
 
 ## Stack
 
@@ -58,7 +59,7 @@ src/app/
   offline/                página que sirve el service worker sin conexión
   (app)/                  todo lo que va tras login, con bottom nav + botón +
     page.tsx              Hoy
-    estudios/(tabs)/      Asignaturas · Exámenes · Flashcards · Historial (TopNav)
+    estudios/(tabs)/      Asignaturas · Plan · Exámenes · Flashcards · Historial (TopNav)
     estudios/asignatura/[id]   dentro de una asignatura (temas tipo Moodle)
     estudios/repasar/[id]      sesión de flashcards
     estudios/ejercicio/[id]    tipo de ejercicio: guía y tandas
@@ -69,15 +70,17 @@ src/app/
     contenido/video/[id]       guion, fechas y fase de un vídeo
     gym/(tabs)/           Entreno · Rutinas · Progreso · Cuerpo (TopNav)
     gym/entreno/[id]           entreno en directo (series que se marcan)
-    objetivos, revision        se abren desde el avatar de Hoy
+    objetivos, revision        se abren desde el avatar de Hoy (Brote)
+    calendario                 calendario global (?mes=, ?dia=, ?area=)
+    avisos                     la campana: avisos recibidos y programados
   api/mcp/[secret]        servidor MCP para Claude (mcp-handler)
-  api/cron/notificaciones resumen diario por push (vercel.json, 07:00 UTC)
+  api/cron/notificaciones avisos por push (vercel.json: ?momento=manana 07:00 UTC y ?momento=tarde 19:00 UTC)
     habitos, bandeja, ajustes  se abren desde el avatar de Hoy
 src/components/ui/        primitivas reutilizables (ver abajo)
 src/components/layout/    nav-config, PageHeader, BottomNav/SideNav/TopNav, MenuSheet, ThemePicker
 src/features/<módulo>/    actions.ts (Server Actions), queries.ts (lecturas), components, logic.ts
 src/lib/                  supabase/ (server, client, proxy, owner), actions, form, dates, constants, types, storage,
-                          upload, theme, format, collections, ai (Gemini), push (web-push)
+                          upload, theme, format, collections, ai (Gemini), push (web-push), notify (avisos)
 public/sw.js              service worker (solo fallback offline)
 ```
 
@@ -125,17 +128,20 @@ la pantalla sale ya con datos.
 
 ## Diseño
 
-- **Estructura B, "lista y timeline"**: secciones planas separadas por líneas finas, títulos pequeños en mayúsculas (`section-title`), agenda e historial en timeline, bottom nav clásica con etiquetas y botón + cuadrado redondeado. Columna móvil de `max-w-[480px]`.
-- **5 paletas** (grafito, índigo, océano, bosque, ciruela), cada una con modo oscuro suave y claro. La de por defecto es **grafito y lima en oscuro**. Se aplican como `data-palette` y `data-mode` en `<html>`; el script de `lib/theme.ts` las pone antes del primer pintado, y Ajustes las guarda en localStorage.
-- Usa siempre tokens de Tailwind (`bg-bg`, `bg-surface`, `bg-surface-2`, `border-line`, `text-fg`, `text-muted`, `bg-accent`/`text-ink`, `text-acc`, `text-study|work|content|gym`) y tonos con `tone-*` + `.chip`/`.dot`/`.tinted`. **Nunca colores hex sueltos.**
+- **Estilo «Widgets suaves»** (elegido por el usuario el 25 nov 2026; sustituye a la antigua estructura B): fondo gris claro con **tarjetas blancas redondeadas** (22 px) y sombra suave, como los widgets del iPhone. Fuente **Plus Jakarta Sans**, títulos en extrabold. El prototipo está en https://claude.ai/artifact/KikFHy7pYgwd9nSqKL2ykk (estilo 1).
+  - `Section` es una tarjeta (`bg-surface`, `rounded-[22px]`, `shadow-[var(--shadow)]`) con el título en 17 px.
+  - `StatRow` son mini widgets; `TopNav` es un control segmentado (la pestaña activa en blanco sobre gris); `LinkPills` son pastillas redondas.
+  - **Brote** (`components/ui/brote.tsx`) es la mascota: un brote con hojas, con tres ánimos (`feliz`, `celebra`, `piensa`). Sale en la cabecera de Hoy (abre el menú), en el menú lateral, en los avisos vacíos y en el icono de la app (`lib/app-icon.tsx`). Nada de estilo terminal (`>_`): no es legible para el usuario.
+- **Paletas**: la de por defecto es **azul en modo claro** (`azul`, igual que el prototipo). Siguen las otras 5 (grafito, índigo, océano, bosque, ciruela), cada una con claro y oscuro. `--shadow` solo existe en claro. Se aplican como `data-palette` y `data-mode` en `<html>`; el script de `lib/theme.ts` las pone antes del primer pintado. Ajustes cambia la paleta y `ThemeToggle` (sol/luna, en Hoy y Calendario) cambia rápido entre claro y oscuro.
+- Usa siempre tokens de Tailwind (`bg-bg`, `bg-surface`, `bg-surface-2`, `border-line`, `text-fg`, `text-muted`, `bg-accent`/`text-ink`, `text-acc`, `text-study|work|content|gym`) y tonos con `tone-*` + `.chip`/`.dot`/`.tinted`. **Nunca colores hex sueltos** (la única excepción es el rojo del contador de la campana).
 - Mobile-first para iPhone: áreas seguras (`env(safe-area-inset-*)`), inputs de 16px, zonas táctiles de 44px o más, `<dialog>` nativo para los sheets.
 - **Tablet y ordenador**:
   - Marco de la app (`(app)/layout.tsx`): en el móvil la página hace scroll normal y `BottomNav` va `fixed` abajo, con `pb-[var(--nav-inset)]` (`max(safe-area-inset-bottom − 18px, 6px)`, en globals.css); desde `md` el marco es fijo y solo hace scroll el contenido. La barra de estado de iOS usa `statusBarStyle: "default"`, pintada con `theme-color` (el script del tema la pone al fondo de la paleta guardada). **No uses `black-translucent`**: con ese estilo, WebKit acorta la ventana de la PWA el alto de la barra de estado, no pinta nada por debajo y la barra inferior queda subida.
-  - Desde `md` (tablet), la barra inferior se cambia por `SideNav`: un menú lateral con iconos que en `lg` (ordenador) se muestra completo. Incluye los módulos, los de apoyo y el botón de captura rápida.
+  - Desde `md` (tablet), la barra inferior se cambia por `SideNav`: un menú lateral con iconos que en `lg` (ordenador) se muestra completo. Incluye los módulos, los de apoyo (`MENU`: Calendario, Avisos, Hábitos…) y el botón de captura rápida.
   - Los módulos y el menú están definidos una sola vez, en `components/layout/nav-config.ts`.
   - El contenido mide `max-w-[480px]` en móvil, `md:max-w-2xl` en tablet y `lg:max-w-5xl` en ordenador (`xl:max-w-6xl` y `2xl:max-w-7xl` en pantallas grandes).
   - `Row` con `href`: toda la fila es enlace y los botones de `trailing` siguen funcionando. Úsalo en vez de poner el `Link` solo en el título.
-  - Las pantallas con varias secciones usan `<Columns>` (dos columnas desde `lg`; en el móvil se apilan en el mismo orden).
+  - Las pantallas con varias tarjetas usan `<Columns>` (dos columnas desde `lg`; en el móvil se apilan en el mismo orden).
   - Las listas de tarjetas usan la clase `.list-grid` (dos columnas desde `lg`).
   - Los sheets se abren como ventana centrada desde `md`.
 - Las skills de diseño instaladas en `.claude/skills` (interface-design, ui-ux-pro-max, mobile-native, etc.) sirven para nuevas pantallas.
@@ -153,7 +159,8 @@ la pantalla sale ya con datos.
   - `…_fase3.sql`: ideas de contenido, vídeos y ventanas de publicación;
   - `…_fase4.sql`: ejercicios, rutinas, entrenos, series, medidas, fotos y objetivos;
   - `…_fase5.sql`: `topics.summary`, ajustes, suscripciones push y revisiones semanales;
-  - `…_fase6.sql`: texto de los archivos (`study_files.content_md`), tipos de ejercicio, tandas y ejercicios de práctica.
+  - `…_fase6.sql`: texto de los archivos (`study_files.content_md`), tipos de ejercicio, tandas y ejercicios de práctica;
+  - `…_fase7.sql`: tareas del plan de exámenes (`study_tasks`) y avisos (`notifications`).
 - Storage: bucket privado `files`, rutas `{user_id}/subjects/{subject_id}/…`, `{user_id}/covers/…` (portadas de asignaturas y proyectos) y `{user_id}/education/…`. Se leen con URLs firmadas (`signPaths`) y se borran con `removePaths` al eliminar la fila.
 - Las flashcards guardan el estado FSRS completo en `fsrs` (jsonb) y la próxima fecha en `due`.
 
@@ -180,6 +187,19 @@ la pantalla sale ya con datos.
   - La app tiene botones "Pedir a Claude" que copian el mensaje que hay que pegarle (`CLAUDE_PROMPTS` en logic.ts).
   - `PracticeLive` guarda cada respuesta al momento. Al terminar, con un 80 % o más (`PASS_RATIO`) el tipo pasa a dominado y se propone el siguiente (`nextExerciseType`). El tema sugiere su dominio según los tipos dominados (`suggestedMastery`).
 - **Markdown**: `components/ui/markdown.tsx` (react-markdown, GFM y KaTeX) con estilos `.md` en globals.css. Es un Server Component: en las pantallas de cliente se pasa ya pintado como `ReactNode`.
+
+## Plan de exámenes, calendario y avisos (fase 7)
+
+- **Pantalla Hoy** (estilo 1): cabecera con Brote (abre el menú), fecha, sol/luna y campana con los no leídos; lo que dice Brote (lo siguiente del plan, las atrasadas o la cuenta atrás); la semana con puntos por área (enlaza al calendario); widgets (examen, racha, gym, contenido, hábitos); «Tu plan de hoy»; agenda; contenido; hábitos; freelance y objetivos.
+- **Plan de exámenes** (`study_tasks`, pestaña Estudios › Plan): tareas por día **sin horas**, cada una con tipo (`STUDY_TASK_KINDS`: estudiar, ejercicios, repasar, flashcards, simulacro, otro) y enlazada a su asignatura, tema o tipo de ejercicio.
+  - Lo crea Claude por MCP (`crear_plan_estudio`, con el prompt «Pedir el plan a Claude» de `CLAUDE_PROMPTS.plan`), o se añaden tareas a mano.
+  - **Reorganizar lo atrasado** (`rescheduleOverdue` en logic.ts): cada tarea atrasada va al día con menos carga entre hoy y el día antes del examen de su asignatura (o la próxima semana si no hay examen).
+  - Lo común a la app y al MCP está en `features/estudios/plan.ts`.
+- **Calendario global** (`/calendario`, `features/calendario/queries.ts`): `getCalendarItems(desde, hasta)` junta exámenes, tareas del plan, bloques de agenda, grabar/editar/publicar, entrenos, rutinas previstas, facturas que vencen y entregas de proyectos, con un área (`CALENDAR_AREAS`) cada uno. Lo usan la pantalla, la semana de Hoy y `ver_calendario`.
+- **Avisos** (`lib/notify.ts`, tabla `notifications`): todo aviso se guarda (la campana de Hoy y `/avisos` los listan) y se manda por push cuando toca.
+  - `notify()` guarda y manda ya; `queueNotifications()` + `deliverDue()` es lo que usa el cron. Un aviso con `send_at` futuro (los de `enviar_aviso` de Claude) sale en la siguiente pasada.
+  - Tipos en `NOTIFICATIONS` (constants), con su interruptor en Ajustes: estudio, plan, exámenes (a 30, 14, 7, 3 y 1 día), contenido, facturas, gym, racha en peligro, lo de mañana, domingo, Claude y «No molestar de noche» (de 23:00 a 8:00 no se manda nada; el cron de la mañana lo manda).
+  - El cron corre dos veces al día (Vercel Hobby solo permite crons diarios): mañana (resumen, plan, cuenta atrás, facturas) y tarde (racha en peligro o lo que queda del plan, y lo de mañana).
 
 ## Proyectos (cómo funciona)
 
@@ -232,11 +252,12 @@ la pantalla sale ya con datos.
   - Cada herramienta es `{ name, description, input (zod), run }` y llama a las consultas y acciones existentes.
   - Para añadir una, agrégala a `MCP_TOOLS`; también aparece listada en Ajustes.
   - Si `run` devuelve un string, se manda tal cual (p. ej. `leer_archivo`); si no, como JSON.
+  - Planificar: `ver_calendario`, `crear_plan_estudio`, `ver_plan`, `replanificar`, `borrar_plan`, `mover` (tarea o bloque), `borrar` (tarea, bloque o aviso), `marcar_hecho` (tarea, bloque o hábito) y `enviar_aviso` (ya o programado). `crear_practica` y `crear_plan_estudio` avisan al móvil.
   - Las rutas que llaman a Gemini o leen PDF escaneados exportan `maxDuration = 300`.
   - La ruta `api/mcp/[secret]` responde 404 si el secreto no coincide.
 - **Push**:
   - `sendPush` en `lib/push.ts`; las suscripciones van en `push_subscriptions` y se activan desde Ajustes (`PushSetup`).
-  - El cron diario arma un resumen según `settings.notifications` y marca como vencidas las facturas pasadas de fecha.
+  - Los avisos y el cron de mañana y tarde están en la sección de la fase 7. El de la mañana también marca como vencidas las facturas pasadas de fecha.
   - El service worker (`public/sw.js`) muestra la notificación y abre la URL al tocarla.
   - En iPhone solo funciona con la PWA instalada.
 - `/api/*` está fuera del `proxy.ts`: cada ruta hace su propia autenticación.

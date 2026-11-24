@@ -1,10 +1,10 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { JetBrains_Mono, Plus_Jakarta_Sans } from "next/font/google";
 import { PwaRegister } from "@/components/layout/pwa-register";
 import { DEFAULT_MODE, DEFAULT_PALETTE, PALETTES, themeScript } from "@/lib/theme";
 import "./globals.css";
 
-const inter = Inter({ variable: "--font-inter", subsets: ["latin"] });
+const jakarta = Plus_Jakarta_Sans({ variable: "--font-jakarta", subsets: ["latin"] });
 const jetbrains = JetBrains_Mono({ variable: "--font-jetbrains", subsets: ["latin"] });
 
 export const metadata: Metadata = {
@@ -21,7 +21,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: PALETTES[0].dark,
+  themeColor: PALETTES[0].light,
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -30,7 +30,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       lang="es"
       data-palette={DEFAULT_PALETTE}
       data-mode={DEFAULT_MODE}
-      className={`${inter.variable} ${jetbrains.variable}`}
+      className={`${jakarta.variable} ${jetbrains.variable}`}
       suppressHydrationWarning
     >
       <head>

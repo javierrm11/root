@@ -1,8 +1,10 @@
 import "server-only";
 import { requireUser, must } from "@/lib/supabase/server";
-import { addDays, nowTime, todayISO } from "@/lib/dates";
+import { addDays, nowTime, todayISO, weekStart } from "@/lib/dates";
 import type { AgendaItem, Habit, InboxItem } from "@/lib/types";
-import { getNextExam, getPriorityTopics } from "@/features/estudios/queries";
+import { getNextExam, getPriorityTopics, getTodayPlan } from "@/features/estudios/queries";
+import { getUnreadCount } from "@/features/avisos/queries";
+import { getCalendarItems } from "@/features/calendario/queries";
 import { getFreelanceToday } from "@/features/proyectos/queries";
 import { getContentToday } from "@/features/contenido/queries";
 import { getGymToday } from "@/features/gym/queries";
@@ -23,7 +25,8 @@ function streak(days: Set<string>, today: string) {
 export async function getToday() {
   const { supabase } = await requireUser();
   const today = todayISO();
-  const [agenda, habits, logs, inbox, nextExam, priority, freelance, content, gym, goals] = await Promise.all([
+  const monday = weekStart(today);
+  const [agenda, habits, logs, inbox, nextExam, priority, freelance, content, gym, goals, plan, unread, week] = await Promise.all([
     supabase.from("agenda_items").select("*").eq("day", today).order("start_time", { nullsFirst: true }).then(must<AgendaItem[]>),
     supabase.from("habits").select("*").eq("archived", false).order("position").order("created_at").then(must<Habit[]>),
     supabase.from("habit_logs").select("habit_id, day").gte("day", addDays(today, -366)).then(must<Array<{ habit_id: string; day: string }>>),
@@ -34,6 +37,9 @@ export async function getToday() {
     getContentToday(),
     getGymToday(),
     getGoals(),
+    getTodayPlan(),
+    getUnreadCount(),
+    getCalendarItems(monday, addDays(monday, 6)),
   ]);
   const doneToday = new Set(logs.filter((l) => l.day === today).map((l) => l.habit_id));
   return {
@@ -49,6 +55,12 @@ export async function getToday() {
     content,
     gym: { routines: gym.routinesToday, active: gym.active },
     goals: goals.goals.slice(0, 4),
+    plan,
+    unread,
+    week: Array.from({ length: 7 }, (_, i) => {
+      const day = addDays(monday, i);
+      return { day, areas: [...new Set(week.filter((w) => w.day === day).map((w) => w.area))] };
+    }),
   };
 }
 

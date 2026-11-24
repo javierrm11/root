@@ -21,15 +21,15 @@ export function CheckRow({
     <ActionButton action={action} pressed={done} className="flex min-h-11 w-full items-center gap-3 py-2 text-left">
       <span
         className={cn(
-          "grid size-[22px] shrink-0 place-items-center border-[1.5px]",
-          square ? "rounded-md" : "rounded-full",
-          done ? "border-accent bg-accent text-ink" : "border-muted text-transparent",
+          "grid size-6 shrink-0 place-items-center border-2",
+          square ? "rounded-lg" : "rounded-full",
+          done ? "border-accent bg-accent text-ink" : "border-line text-transparent",
         )}
       >
         <Icon name="check" size={14} />
       </span>
       <span className="min-w-0 flex-1">
-        <span className={cn("block text-sm font-medium", done && "text-muted line-through")}>{label}</span>
+        <span className={cn("block text-[15px] font-semibold", done && "text-muted line-through")}>{label}</span>
         {subtitle && <span className="block text-[13px] text-muted">{subtitle}</span>}
       </span>
     </ActionButton>

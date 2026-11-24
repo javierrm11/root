@@ -6,7 +6,7 @@ App personal (PWA) para organizar estudios, freelance, contenido de TikTok y gim
 
 ### 1. Supabase
 1. Crea un proyecto en [supabase.com](https://supabase.com).
-2. Ejecuta **en orden** las migraciones de `supabase/migrations/`, de la fase 1 a la 6. Puedes hacerlo pegando cada una en el SQL Editor, o con la CLI: `npx supabase link --project-ref <ref>` y `npx supabase db push`.
+2. Ejecuta **en orden** las migraciones de `supabase/migrations/`, de la fase 1 a la 7. Puedes hacerlo pegando cada una en el SQL Editor, o con la CLI: `npx supabase link --project-ref <ref>` y `npx supabase db push`.
 3. **Authentication → Sign In / Providers**: desactiva *Allow new users to sign up*, porque la app es solo para ti.
 4. **Authentication → Users → Add user**: crea tu usuario y marca *Auto Confirm User*.
 
@@ -26,7 +26,7 @@ npm run dev
 ```
 
 ### 4. Desplegar e instalar en el iPhone
-1. Sube el repo a GitHub e impórtalo en [Vercel](https://vercel.com) con las mismas variables de entorno. El cron del resumen diario ya está en `vercel.json`.
+1. Sube el repo a GitHub e impórtalo en [Vercel](https://vercel.com) con las mismas variables de entorno. Los dos crons de avisos (8:00 y 20:00) ya están en `vercel.json`.
 2. En el iPhone: Safari → Compartir → **Añadir a pantalla de inicio**. Abre root desde ahí y activa las notificaciones en Ajustes.
 
 ### 5. Conectar Claude
@@ -40,6 +40,8 @@ Claude lee tus PDF y boletines (`leer_archivo`) y te prepara la práctica dentro
 2. En cada tipo, **Cómo se resuelve → Pedir a Claude**: teoría, pasos y un ejemplo resuelto.
 3. **Practicar → Test o Desarrollo → Pedir a Claude**: la tanda aparece en la app, con pista y solución ocultas.
 4. Con un 80 % de aciertos el tipo queda dominado y pasas al siguiente; si no, pide otra tanda centrada en lo fallado.
+
+Para el plan de exámenes: en Estudios › Plan, **Pedir el plan a Claude** copia el mensaje; Claude reparte el estudio día a día (sin horas) y te avisa al móvil. Si te atrasas, **Reorganizar** reparte lo pendiente antes de cada examen.
 
 Si activas «Tipos de ejercicio» en Ajustes, Gemini puede detectar los tipos de un tema con un botón; la guía y las tandas son de Claude.
 

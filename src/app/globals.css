@@ -1,7 +1,8 @@
 @import "tailwindcss";
 
 /* ══════════════════════════════════════════════════════════════════
-   root · sistema de diseño (estructura B: lista y timeline)
+   root · sistema de diseño (estilo «Widgets suaves»)
+   Fondo gris claro con tarjetas blancas redondeadas (widgets de iPhone), o al revés en oscuro.
    Los colores son tokens por paleta y modo, en <html data-palette data-mode>.
    ══════════════════════════════════════════════════════════════════ */
 
@@ -19,15 +20,30 @@
   --color-work: var(--work);
   --color-content: var(--content);
   --color-gym: var(--gym);
-  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --font-sans: var(--font-jakarta), system-ui, sans-serif;
   --font-mono: var(--font-jetbrains), ui-monospace, monospace;
 }
 
 /* ─── Paletas ─────────────────────────────────────────────────────
    bg/surface/surface2/line: fondos · text/muted: texto · accent/ink: botón
    principal y su texto · acc: acento usable como texto · study/work/content/gym:
-   colores de categoría. Todo pasa contraste AA. */
+   colores de categoría. --shadow: sombra suave de las tarjetas (solo en claro).
+   Todo pasa contraste AA. */
 :root,
+[data-palette="azul"][data-mode="light"] {
+  color-scheme: light;
+  --bg: #f2f3f6; --surface: #ffffff; --surface2: #eceef3; --line: #e2e5ec;
+  --text: #141824; --muted: #596070; --accent: #3557d6; --ink: #ffffff; --acc: #3557d6;
+  --study: #2d59d2; --work: #a85a06; --content: #b8205e; --gym: #067a55;
+}
+[data-palette="azul"][data-mode="dark"] {
+  color-scheme: dark;
+  --bg: #13151b; --surface: #1d2028; --surface2: #272b35; --line: #2f343f;
+  --text: #f2f4f8; --muted: #a6acb8; --accent: #93a6ff; --ink: #0f1430; --acc: #93a6ff;
+  --study: #93b2ff; --work: #f3b867; --content: #ff92bc; --gym: #5ed6aa;
+}
+:root, [data-mode="light"] { --shadow: 0 1px 2px rgb(20 24 36 / 0.05), 0 6px 20px rgb(20 24 36 / 0.06); }
+[data-mode="dark"] { --shadow: none; }
 [data-palette="grafito"][data-mode="dark"] {
   color-scheme: dark;
   --bg: #1f2024; --surface: #28292e; --surface2: #323439; --line: #3b3e45;
@@ -212,7 +228,7 @@
   dialog.sheet {
     margin: auto auto 0; width: 100%; max-width: 480px; max-height: 92dvh;
     border: 0; padding: 0; overflow-y: auto; overscroll-behavior: contain;
-    background: var(--surface); color: var(--text); border-radius: 20px 20px 0 0;
+    background: var(--surface); color: var(--text); border-radius: 26px 26px 0 0;
   }
   dialog.sheet::backdrop { background: rgb(0 0 0 / 0.5); }
   dialog.sheet[open] { animation: sheet-up 0.24s cubic-bezier(0.2, 0.8, 0.2, 1); }
@@ -223,7 +239,7 @@
 
 /* Tablet y ordenador: los sheets son ventanas centradas */
 @media (min-width: 48rem) {
-  dialog.sheet { margin: auto; max-width: 520px; max-height: 85dvh; border-radius: 20px; }
+  dialog.sheet { margin: auto; max-width: 520px; max-height: 85dvh; border-radius: 26px; }
   dialog.sheet[open] { animation: sheet-pop 0.18s cubic-bezier(0.2, 0.8, 0.2, 1); }
 }
 
@@ -232,15 +248,14 @@
 }
 
 /* ─── Diseño a dos columnas en ordenador ──────────────────────────────
-   Fuera de @layer a propósito: debe ganar a `first:border-t-0` de <Section>. */
+   Fuera de @layer a propósito: debe ganar a las utilidades de <Section>. */
 
-/* <Columns>: en el móvil, columnas una debajo de otra (con su línea de separación);
-   desde lg, dos columnas. */
+/* <Columns>: en el móvil, columnas una debajo de otra; desde lg, dos columnas de tarjetas. */
 .columns > * { min-width: 0; }
-.columns > * + * > section:first-child { border-top: 1px solid var(--line); padding-top: 1.25rem; }
+.columns > * + * { margin-top: 0.875rem; }
 @media (min-width: 64rem) {
-  .columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; column-gap: 3rem; }
-  .columns > * + * > section:first-child { border-top: 0; padding-top: 0.25rem; }
+  .columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; column-gap: 1rem; }
+  .columns > * + * { margin-top: 0; }
 }
 
 /* .list-grid: listas de tarjetas (asignaturas, proyectos, ideas…) a dos columnas desde lg */

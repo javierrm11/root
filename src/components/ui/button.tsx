@@ -18,7 +18,7 @@ type StyleProps = { variant?: ButtonVariant; wide?: boolean; icon?: IconName };
 
 export function buttonClass({ variant = "primary", wide }: StyleProps = {}) {
   return cn(
-    "inline-flex shrink-0 items-center justify-center gap-2 rounded-xl font-semibold transition-opacity active:opacity-70 disabled:opacity-50",
+    "inline-flex shrink-0 items-center justify-center gap-2 rounded-2xl font-bold transition-opacity active:opacity-70 disabled:opacity-50",
     VARIANTS[variant],
     wide && "w-full",
   );

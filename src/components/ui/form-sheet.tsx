@@ -102,7 +102,7 @@ function TriggerButton({ label, icon, variant = "link", wide, onClick }: Trigger
         aria-label={label}
         title={label}
         onClick={onClick}
-        className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-accent font-semibold text-ink transition-opacity hover:opacity-90 active:opacity-70"
+        className="flex h-11 w-full items-center justify-center gap-2 rounded-2xl bg-accent font-bold text-ink transition-opacity hover:opacity-90 active:opacity-70"
       >
         <Icon name={icon ?? "plus"} size={20} />
         <span className="hidden lg:inline">{label}</span>
@@ -116,7 +116,7 @@ function TriggerButton({ label, icon, variant = "link", wide, onClick }: Trigger
         type="button"
         aria-label={label}
         onClick={onClick}
-        className="pointer-events-auto grid size-[54px] place-items-center rounded-[17px] bg-accent text-ink shadow-[0_8px_20px_-6px_rgb(0_0_0/0.45)] transition-transform active:scale-95"
+        className="pointer-events-auto grid size-14 place-items-center rounded-[18px] bg-accent text-ink shadow-[0_10px_24px_-6px_color-mix(in_srgb,var(--accent)_55%,transparent)] transition-transform active:scale-95"
       >
         <Icon name={icon ?? "plus"} size={24} />
       </button>

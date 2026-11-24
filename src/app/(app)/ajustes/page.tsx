@@ -87,7 +87,7 @@ async function Preferences() {
         </RowList>
       </Section>
 
-      <Section title="Notificaciones" aside={<span className="text-[13px] text-muted">Resumen diario por la mañana</span>}>
+      <Section title="Notificaciones" aside={<span className="text-[13px] text-muted">A las 8:00 y a las 20:00</span>}>
         <PushSetup publicKey={PUSH_PUBLIC_KEY} />
         <RowList className="mt-2">
           {keysOf(NOTIFICATIONS).map((key) => (

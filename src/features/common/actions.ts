@@ -25,6 +25,8 @@ const DELETABLE = [
   "body_metrics",
   "goals",
   "practice_sets",
+  "study_tasks",
+  "notifications",
 ] as const;
 export type DeletableTable = (typeof DELETABLE)[number];
 

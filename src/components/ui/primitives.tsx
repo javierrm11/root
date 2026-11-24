@@ -13,7 +13,7 @@ export function Dot({ tone = "mut" }: { tone?: Tone }) {
   return <span className={cn("dot", `tone-${tone}`)} aria-hidden />;
 }
 
-/** Sección plana con línea fina arriba y título pequeño en mayúsculas (estructura B). */
+/** Sección: tarjeta blanca redondeada con sombra suave (estilo «Widgets suaves»). */
 export function Section({
   title,
   aside,
@@ -26,10 +26,10 @@ export function Section({
   children: ReactNode;
 }) {
   return (
-    <section className={cn("border-t border-line py-5 first:border-t-0 first:pt-1", className)}>
+    <section className={cn("mt-3.5 rounded-[22px] bg-surface p-4 shadow-[var(--shadow)] first:mt-0", className)}>
       {(title || aside) && (
         <div className="mb-2 flex min-h-8 items-center justify-between gap-3">
-          {title && <h2 className="section-title">{title}</h2>}
+          {title && <h2 className="text-[17px] font-extrabold tracking-[-0.01em]">{title}</h2>}
           {aside}
         </div>
       )}
@@ -110,15 +110,17 @@ export function RowList({ children, className }: { children: ReactNode; classNam
 export function Stat({ value, label, accent }: { value: ReactNode; label: ReactNode; accent?: boolean }) {
   return (
     <span className="flex flex-col gap-0.5">
-      <span className={cn("text-[26px] leading-tight font-bold tracking-[-0.03em]", accent && "text-acc")}>{value}</span>
-      <span className="text-[13px] leading-snug text-muted">{label}</span>
+      <span className={cn("text-[24px] leading-tight font-extrabold tracking-[-0.03em]", accent && "text-acc")}>{value}</span>
+      <span className="text-[13px] leading-snug font-semibold text-muted">{label}</span>
     </span>
   );
 }
 
-/** Rejilla de 3 estadísticas separadas por líneas verticales. */
+/** Rejilla de 3 estadísticas, cada una en su mini widget. */
 export function StatRow({ children }: { children: ReactNode }) {
-  return <div className="mb-4 grid grid-cols-3 [&>*]:px-3.5 [&>*:first-child]:pl-0 [&>*+*]:border-l [&>*+*]:border-line">{children}</div>;
+  return (
+    <div className="mb-3.5 grid grid-cols-3 gap-2.5 [&>*]:rounded-[20px] [&>*]:bg-surface [&>*]:p-3.5 [&>*]:shadow-[var(--shadow)]">{children}</div>
+  );
 }
 
 /** Elemento de timeline: hora (o año) a la izquierda, eje con punto y contenido. */
@@ -155,7 +157,7 @@ export function TimelineItem({
 /** Bloque de fecha "26 / NOV" para filas de exámenes, facturas… */
 export function DateBlock({ iso }: { iso: string }) {
   return (
-    <span className="flex h-[50px] w-[46px] shrink-0 flex-col items-center justify-center rounded-xl bg-surface-2">
+    <span className="flex h-[50px] w-[46px] shrink-0 flex-col items-center justify-center rounded-2xl bg-surface-2">
       <span className="text-lg leading-none font-bold">{Number(iso.slice(8, 10))}</span>
       <span className="mt-0.5 text-[11px] font-semibold text-muted uppercase">{formatShortMonth(iso)}</span>
     </span>
@@ -172,8 +174,8 @@ export function LinkPills({ items }: { items: Array<{ href: string; label: strin
           href={item.href}
           aria-current={item.active ? "page" : undefined}
           className={cn(
-            "inline-flex h-9 shrink-0 items-center gap-1.5 rounded-[9px] px-3.5 text-sm font-semibold",
-            item.active ? "bg-fg text-bg" : "bg-surface-2 text-muted",
+            "inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full px-3.5 text-sm font-bold",
+            item.active ? "bg-fg text-bg" : "bg-surface text-muted shadow-[var(--shadow)]",
           )}
         >
           {item.label}

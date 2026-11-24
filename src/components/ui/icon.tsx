@@ -1,4 +1,8 @@
 import {
+  Bell,
+  ListChecks,
+  Moon,
+  Sun,
   BookOpen,
   Briefcase,
   CalendarDays,
@@ -33,6 +37,10 @@ import {
 // Los iconos se referencian por nombre para poder pasarlos de Server a Client Components.
 const ICONS = {
   home: House,
+  bell: Bell,
+  list: ListChecks,
+  moon: Moon,
+  sun: Sun,
   book: BookOpen,
   work: Briefcase,
   video: Clapperboard,

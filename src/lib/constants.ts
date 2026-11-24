@@ -196,12 +196,40 @@ export const AI_FEATURES = catalog({
 });
 
 export const NOTIFICATIONS = catalog({
-  estudio: { label: "Bloques de estudio", short: "Los de la agenda de hoy" },
+  estudio: { label: "Bloques de estudio", short: "Los de la agenda de hoy, por la mañana" },
+  plan: { label: "Plan de exámenes", short: "Las tareas de hoy, por la mañana" },
+  examenes: { label: "Cuenta atrás de exámenes", short: "A 30, 14, 7, 3 y 1 día" },
   contenido: { label: "Grabar o publicar hoy", short: "Tareas de contenido del día" },
   facturas: { label: "Facturas vencidas", short: "Las que pasan de su fecha" },
-  domingo: { label: "Revisión del domingo", short: "Recordatorio para hacerla" },
   gym: { label: "Entreno del día", short: "La rutina que toca" },
+  racha: { label: "Racha en peligro", short: "Por la tarde, si aún no has hecho nada" },
+  manana: { label: "Lo de mañana", short: "Resumen por la tarde" },
+  domingo: { label: "Revisión del domingo", short: "Recordatorio para hacerla" },
+  claude: { label: "Avisos de Claude", short: "Tandas, planes y recordatorios que te deja" },
+  silencio: { label: "No molestar de noche", short: "Lo que llegue de 23:00 a 8:00 espera a la mañana" },
 });
+
+// ─── Fase 7 · Plan de exámenes y calendario global ─────────────────
+export const STUDY_TASK_KINDS = catalog({
+  estudiar: { label: "Estudiar", tone: "study" },
+  ejercicios: { label: "Ejercicios", tone: "acc" },
+  repasar: { label: "Repasar", tone: "gym" },
+  flashcards: { label: "Flashcards", tone: "content" },
+  simulacro: { label: "Simulacro", tone: "work" },
+  otro: { label: "Otro", tone: "mut" },
+});
+
+/** Áreas del calendario global (y sus filtros ?area=). */
+export const CALENDAR_AREAS = catalog({
+  estudios: { label: "Estudios", tone: "study" },
+  proyectos: { label: "Proyectos", tone: "work" },
+  contenido: { label: "Contenido", tone: "content" },
+  gym: { label: "Gym", tone: "gym" },
+  personal: { label: "Personal", tone: "mut" },
+});
+
+export type StudyTaskKind = keyof typeof STUDY_TASK_KINDS;
+export type CalendarArea = keyof typeof CALENDAR_AREAS;
 
 export type PhotoAngle = keyof typeof PHOTO_ANGLES;
 export type GoalMetric = keyof typeof GOAL_METRICS;

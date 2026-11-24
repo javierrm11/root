@@ -85,6 +85,8 @@ type PromptCtx = { subject: string; topic: string; topicId: string };
 type TypeCtx = PromptCtx & { typeId: string; typeName: string };
 
 export const CLAUDE_PROMPTS = {
+  plan: () =>
+    "Con root: mira mis asignaturas, temas, dominio, tipos de ejercicio y exámenes (y ver_calendario para ver lo que ya tengo), y hazme un plan día a día hasta cada examen, sin horas. Cada día: qué tema estudiar, qué ejercicios del boletín hacer y qué repasar, con un simulacro antes de cada examen y días de repaso al final. Guárdalo con crear_plan_estudio.",
   types: (c: PromptCtx) =>
     `Con root: lee los boletines del tema «${c.topic}» de ${c.subject} (topic_id ${c.topicId}) con leer_archivo y dime cuántos tipos de ejercicio hay y cuáles (con los números de ejercicio de cada uno). Después guárdalos con guardar_tipos_ejercicio.`,
   guide: (c: TypeCtx) =>
@@ -92,3 +94,33 @@ export const CLAUDE_PROMPTS = {
   practice: (c: TypeCtx, mode: PracticeMode) =>
     `Con root: hazme una tanda de ${PRACTICE_SIZE} ejercicios ${mode === "test" ? "tipo test" : "de desarrollo"} del tipo «${c.typeName}» del tema «${c.topic}» de ${c.subject} (exercise_type_id ${c.typeId}), con pista y solución paso a paso. Mira antes resultados_practica para centrarte en lo que he fallado y guárdala con crear_practica.`,
 };
+
+// ─── Plan de exámenes ───────────────────────────────────────────────
+
+/** Días que se reparten las tareas atrasadas de una asignatura sin examen. */
+const RESCHEDULE_WINDOW = 7;
+
+/**
+ * Reparte las tareas atrasadas entre hoy y el día antes del examen de su asignatura
+ * (o la próxima semana si no hay examen), poniendo cada una en el día con menos carga.
+ */
+export function rescheduleOverdue(
+  overdue: Array<{ id: string; subject_id: string | null }>,
+  load: Map<string, number>,
+  examBySubject: Map<string, string>,
+  today: string,
+) {
+  const moves: Array<{ id: string; day: string }> = [];
+  for (const task of overdue) {
+    const exam = task.subject_id ? examBySubject.get(task.subject_id) : undefined;
+    let last = exam ? addDays(exam, -1) : addDays(today, RESCHEDULE_WINDOW - 1);
+    if (last < today) last = today;
+    let best = today;
+    for (let day = today; day <= last; day = addDays(day, 1)) {
+      if ((load.get(day) ?? 0) < (load.get(best) ?? 0)) best = day;
+    }
+    load.set(best, (load.get(best) ?? 0) + 1);
+    moves.push({ id: task.id, day: best });
+  }
+  return moves;
+}

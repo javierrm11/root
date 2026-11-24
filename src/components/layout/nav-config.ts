@@ -15,6 +15,8 @@ export const MODULES: NavItem[] = [
 
 /** Módulos de apoyo: menú del avatar en el móvil y parte baja del menú lateral. */
 export const MENU: MenuItem[] = [
+  { href: "/calendario", label: "Calendario", short: "Calendario", hint: "Todo lo que pasa cada día, en un sitio", icon: "calendar", tone: "acc" },
+  { href: "/avisos", label: "Avisos", short: "Avisos", hint: "Notificaciones y recordatorios de Claude", icon: "bell", tone: "content" },
   { href: "/habitos", label: "Hábitos", short: "Hábitos", hint: "Tus rutinas diarias y rachas", icon: "flame", tone: "gym" },
   { href: "/objetivos", label: "Objetivos del trimestre", short: "Objetivos", hint: "Conectados a tus módulos", icon: "target", tone: "acc" },
   { href: "/revision", label: "Revisión semanal", short: "Revisión", hint: "Resumen y plan con Gemini", icon: "repeat", tone: "study" },

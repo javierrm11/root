@@ -11,7 +11,7 @@ const MODES: Array<{ id: Mode; label: string }> = [
   { id: "light", label: "Claro" },
 ];
 
-function applyTheme(palette: PaletteId, mode: Mode) {
+export function applyTheme(palette: PaletteId, mode: Mode) {
   const root = document.documentElement;
   root.dataset.palette = palette;
   root.dataset.mode = mode;

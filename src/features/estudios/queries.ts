@@ -4,8 +4,8 @@ import { notFound } from "next/navigation";
 import { requireUser, must, type Db } from "@/lib/supabase/server";
 import { signPaths } from "@/lib/storage";
 import { groupBy } from "@/lib/collections";
-import { addMonths, daysBetween, monthStart, todayISO } from "@/lib/dates";
-import type { Education, Exam, ExerciseType, Flashcard, PracticeItem, PracticeSet, StudyFile, Subject, Topic, TopicContent } from "@/lib/types";
+import { addDays, addMonths, daysBetween, monthStart, todayISO } from "@/lib/dates";
+import type { Education, Exam, ExerciseType, Flashcard, PracticeItem, PracticeSet, StudyFile, StudyTask, Subject, Topic, TopicContent } from "@/lib/types";
 import { masteryPct, nextExerciseType, priorityScore } from "./logic";
 import { loadExerciseType } from "./practice";
 
@@ -177,6 +177,54 @@ export async function getPracticeView(id: string) {
   if (!loaded) notFound();
   const siblings = await topicTypes(supabase, loaded.topic.id);
   return { set, items, ...loaded, next: nextExerciseType(siblings, loaded.type.id) };
+}
+
+export type PlanTask = StudyTask & { subjectName: string; href: string };
+
+/** Enlace de una tarea del plan: su tipo de ejercicio, su asignatura o el propio plan. */
+const taskHref = (t: StudyTask) =>
+  t.exercise_type_id ? `/estudios/ejercicio/${t.exercise_type_id}` : t.subject_id ? `/estudios/asignatura/${t.subject_id}` : "/estudios/plan";
+
+/** Pestaña Plan: tareas atrasadas, las de los próximos días y la cuenta atrás de cada examen. */
+export async function getStudyPlan(weeks = 2) {
+  const { supabase, today, subjects, exams } = await loadStudyBase();
+  const until = weeks > 0 ? addDays(today, weeks * 7 - 1) : null;
+  let upcomingQuery = supabase.from("study_tasks").select("*").gte("day", today);
+  if (until) upcomingQuery = upcomingQuery.lte("day", until);
+  const [upcoming, overdue, all] = await Promise.all([
+    upcomingQuery.order("day").order("position").order("created_at").then(must<StudyTask[]>),
+    supabase.from("study_tasks").select("*").eq("done", false).lt("day", today).order("day").then(must<StudyTask[]>),
+    supabase.from("study_tasks").select("subject_id, done, day").then(must<Array<Pick<StudyTask, "subject_id" | "done" | "day">>>),
+  ]);
+  const name = new Map(subjects.map((s) => [s.id, s.name]));
+  const enrich = (t: StudyTask): PlanTask => ({ ...t, subjectName: t.subject_id ? (name.get(t.subject_id) ?? "") : "", href: taskHref(t) });
+  const bySubject = groupBy(all, (t) => t.subject_id);
+  return {
+    today,
+    subjects,
+    overdue: overdue.map(enrich),
+    days: [...groupBy(upcoming.map(enrich), (t) => t.day)].map(([day, tasks]) => ({ day, tasks })),
+    later: until ? all.filter((t) => t.day > until && !t.done).length : 0,
+    total: all.length,
+    exams: exams.map((e) => {
+      const tasks = bySubject.get(e.subject_id) ?? [];
+      return { ...e, subjectName: name.get(e.subject_id) ?? "", planDone: tasks.filter((t) => t.done).length, planTotal: tasks.length };
+    }),
+  };
+}
+
+/** Tareas del plan de hoy y cuántas hay atrasadas (para Hoy). */
+export async function getTodayPlan() {
+  const { supabase, today, subjects } = await loadStudyBase();
+  const [tasks, overdue] = await Promise.all([
+    supabase.from("study_tasks").select("*").eq("day", today).order("position").order("created_at").then(must<StudyTask[]>),
+    supabase.from("study_tasks").select("id", { count: "exact", head: true }).eq("done", false).lt("day", today),
+  ]);
+  const name = new Map(subjects.map((s) => [s.id, s.name]));
+  return {
+    tasks: tasks.map((t): PlanTask => ({ ...t, subjectName: t.subject_id ? (name.get(t.subject_id) ?? "") : "", href: taskHref(t) })),
+    overdue: overdue.count ?? 0,
+  };
 }
 
 /** Pestaña Exámenes: calendario del mes, próximos exámenes y días con estudio planificado. */
